@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PASSIVE OSINT PLATFORM - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', 'Monaco', monospace;
+            background: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.7;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            border-bottom: 2px solid #ffffff;
+            padding-bottom: 25px;
+            margin-bottom: 40px;
+            text-align: left;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: normal;
+            letter-spacing: 3px;
+        }
+        
+        header .status-indicator {
+            font-size: 0.95em;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+        
+        .status-indicator span {
+            border: 1px solid #ffffff;
+            padding: 5px 10px;
+            margin-right: 10px;
+            display: inline-block;
+        }
+        
+        .status-indicator .active {
+            background: #000000;
+            color: #ffffff;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+        
+        .input-section {
+            border: 1px solid #ffffff;
+            padding: 25px;
+        }
+        
+        .input-section h2 {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            font-weight: normal;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+        
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            background: #000000;
+            border: 1px solid #ffffff;
+            color: #ffffff;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+        
+        .form-group input[type="text"]:focus,
+        .form-group textarea:focus {
+            outline: none;
+            background: #ffffff;
+            color: #000000;
+        }
+        
+        .checkbox-group {
+            margin-bottom: 25px;
+        }
+        
+        .checkbox-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+        
+        .module-checkbox {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .module-checkbox input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            accent-color: #ffffff;
+            background: #000000;
+            border: 1px solid #ffffff;
+            cursor: pointer;
+        }
+        
+        .module-checkbox label {
+            margin: 0;
+            cursor: pointer;
+            font-size: 0.95em;
+        }
+        
+        button {
+            background: #000000;
+            border: 1px solid #ffffff;
+            color: #ffffff;
+            padding: 15px 30px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        button:hover {
+            background: #ffffff;
+            color: #000000;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .output-section {
+            border: 1px solid #ffffff;
+            padding: 25px;
+        }
+        
+        .output-section h2 {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            font-weight: normal;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        
+        .output-content {
+            background: #000000;
+            border: 1px solid #ffffff;
+            padding: 15px;
+            min-height: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }
+        
+        .output-content::-webkit-scrollbar {
+            width: 10px;
+        }
+        
+        .output-content::-webkit-scrollbar-track {
+            background: #000000;
+        }
+        
+        .output-content::-webkit-scrollbar-thumb {
+            background: #ffffff;
+            border: 1px solid #000000;
+        }
+        
+        .log-line {
+            padding: 5px 0;
+            border-bottom: 1px solid #333333;
+        }
+        
+        .log-line:last-child {
+            border-bottom: none;
+        }
+        
+        .log-timestamp {
+            color: #ffffff;
+        }
+        
+        .log-message {
+            color: #ffffff;
+            margin-left: 20px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 8px 12px;
+            border: 1px solid #ffffff;
+            margin-bottom: 15px;
+            font-size: 0.85em;
+            letter-spacing: 1px;
+        }
+        
+        .status-running {
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0.5; }
+        }
+        
+        .modules-status {
+            border-top: 1px solid #ffffff;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+        
+        .module-status {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #ffffff;
+        }
+        
+        .module-status:last-child {
+            border-bottom: none;
+        }
+        
+        .module-name {
+            font-weight: normal;
+            letter-spacing: 1px;
+        }
+        
+        .module-state {
+            letter-spacing: 1px;
+        }
+        
+        footer {
+            border-top: 2px solid #ffffff;
+            padding-top: 25px;
+            text-align: center;
+            color: #ffffff;
+            font-size: 0.9em;
+            letter-spacing: 1px;
+        }
+        
+        .error {
+            background: #000000;
+            border: 1px solid #ffffff;
+            padding: 15px;
+            margin: 15px 0;
+            color: #ffffff;
+        }
+        
+        .success {
+            background: #000000;
+            border: 1px solid #ffffff;
+            padding: 15px;
+            margin: 15px 0;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PASSIVE OSINT PLATFORM</h1>
+            <div class="status-indicator">
+                <span id="status" class="active">STATUS: ONLINE</span>
+                <span id="time">TIME: --:--:--</span>
+            </div>
+        </header>
+        
+        <div class="main-content">
+            <!-- Input Section -->
+            <div class="input-section">
+                <h2>INPUT</h2>
+                
+                <form id="recon-form">
+                    <div class="form-group">
+                        <label for="domain">TARGET DOMAIN</label>
+                        <input type="text" id="domain" name="domain" placeholder="example.com" required>
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <label>MODULES</label>
+                        <div class="module-checkbox">
+                            <input type="checkbox" id="module-subdomains" name="modules" value="subdomains" checked>
+                            <label for="module-subdomains">Subdomain Enumeration</label>
+                        </div>
+                        <div class="module-checkbox">
+                            <input type="checkbox" id="module-ports" name="modules" value="ports" checked>
+                            <label for="module-ports">Port Detection</label>
+                        </div>
+                        <div class="module-checkbox">
+                            <input type="checkbox" id="module-technologies" name="modules" value="technologies" checked>
+                            <label for="module-technologies">Technology Stack</label>
+                        </div>
+                        <div class="module-checkbox">
+                            <input type="checkbox" id="module-vulnerabilities" name="modules" value="vulnerabilities" checked>
+                            <label for="module-vulnerabilities">Vulnerability Assessment</label>
+                        </div>
+                        <div class="module-checkbox">
+                            <input type="checkbox" id="module-credentials" name="modules" value="credentials" checked>
+                            <label for="module-credentials">Credential Monitoring</label>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" id="submit-btn">EXECUTE RECONNAISSANCE</button>
+                </form>
+            </div>
+            
+            <!-- Output Section -->
+            <div class="output-section">
+                <h2>OUTPUT</h2>
+                
+                <div id="status-badges">
+                    <span class="status-badge" id="status-label">READY</span>
+                </div>
+                
+                <div class="output-content" id="output">
+                    <div class="log-line">
+                        <span class="log-timestamp">[INIT]</span>
+                        <span class="log-message">Passive OSINT Platform initialized</span>
+                    </div>
+                    <div class="log-line">
+                        <span class="log-timestamp">[SYSTEM]</span>
+                        <span class="log-message">Waiting for input...</span>
+                    </div>
+                </div>
+                
+                <div class="modules-status" id="modules-status">
+                    <div style="margin-bottom: 10px; letter-spacing: 1px; font-weight: normal;">MODULE STATUS</div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>PASSIVE OSINT PLATFORM | INTELLIGENCE RECONNAISSANCE | ENTERPRISE GRADE</p>
+            <p style="margin-top: 10px;">Version 1.0.0 | MIT License</p>
+        </footer>
+    </div>
+    
+    <script>
+        // API Token - must be set for authenticated endpoints
+        let API_TOKEN = localStorage.getItem('api_token') || '';
+        
+        function setApiToken(token) {
+            API_TOKEN = token;
+            localStorage.setItem('api_token', token);
+        }
+        
+        function getAuthHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'X-API-Token': API_TOKEN
+            };
+        }
+        
+        // Update time display
+        function updateTime() {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString('fr-FR');
+            document.getElementById('time').textContent = `TIME: ${timeStr}`;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!API_TOKEN) {
+                const token = prompt('Entrez votre API Token (X-API-Token):');
+                if (token) setApiToken(token);
+            }
+            loadStatus();
+        });
+        
+        // Load platform status
+        async function loadStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                console.log('Platform status:', data);
+            } catch (error) {
+                console.error('Failed to load status:', error);
+            }
+        }
+        
+        // Form submission
+        document.getElementById('recon-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const domain = document.getElementById('domain').value;
+            const modules = Array.from(document.querySelectorAll('input[name="modules"]:checked')).map(el => el.value);
+            
+            if (!domain) {
+                addLog('ERROR', 'Domain is required');
+                return;
+            }
+            
+            if (modules.length === 0) {
+                addLog('ERROR', 'At least one module must be selected');
+                return;
+            }
+            
+            // Disable button
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'PROCESSING...';
+            
+            // Update status
+            document.getElementById('status-label').textContent = 'PROCESSING';
+            document.getElementById('status-label').classList.add('status-running');
+            
+            addLog('INIT', `Target domain: ${domain}`);
+            addLog('INIT', `Selected modules: ${modules.join(', ')}`);
+            addLog('PROCESS', 'Validating domain...');
+            
+            try {
+                // Validate domain
+                let response = await fetch('/api/validate-domain', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ domain: domain })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    addLog('ERROR', error.message);
+                    return;
+                }
+                
+                const validation = await response.json();
+                addLog('SUCCESS', `Domain validated: ${validation.domain}`);
+                
+                // Start reconnaissance
+                addLog('PROCESS', 'Starting reconnaissance...');
+                response = await fetch('/api/reconnaissance', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        domain: validation.domain,
+                        modules: modules
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    addLog('ERROR', error.error);
+                    return;
+                }
+                
+                const results = await response.json();
+                addLog('SUCCESS', `Reconnaissance initiated for ${results.domain}`);
+                
+                // Display real results
+                displayResults(results);
+                
+                addLog('SUCCESS', 'Reconnaissance complete');
+                addLog('RESULT', `Total modules executed: ${modules.length}`);
+                
+            } catch (error) {
+                addLog('ERROR', `Exception: ${error.message}`);
+            } finally {
+                // Re-enable button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'EXECUTE RECONNAISSANCE';
+                document.getElementById('status-label').textContent = 'READY';
+                document.getElementById('status-label').classList.remove('status-running');
+            }
+        });
+        
+        // Display real results
+        function displayResults(results) {
+            addLog('RESULTS', '=== RECONNAISSANCE RESULTS ===');
+            addLog('RESULTS', `Domain: ${results.domain}`);
+            addLog('RESULTS', `Timestamp: ${results.timestamp}`);
+            addLog('RESULTS', '');
+            
+            // DNS Results
+            if (results.results.dns) {
+                const dns = results.results.dns;
+                if (dns.status === 'success') {
+                    addLog('DNS', `IP Address: ${dns.ip}`);
+                } else {
+                    addLog('DNS', `Status: ${dns.status} - ${dns.error || ''}`);
+                }
+            }
+            
+            // Subdomain Results
+            if (results.results.subdomains) {
+                const subs = results.results.subdomains;
+                if (subs.status === 'success' && subs.data.length > 0) {
+                    addLog('SUBDOMAINS', `Found ${subs.data.length} subdomains from ${subs.source}:`);
+                    subs.data.slice(0, 5).forEach(sub => {
+                        addLog('SUBDOMAINS', `  → ${sub}`);
+                    });
+                    if (subs.data.length > 5) {
+                        addLog('SUBDOMAINS', `  ... and ${subs.data.length - 5} more`);
+                    }
+                } else {
+                    addLog('SUBDOMAINS', `Status: ${subs.status}`);
+                }
+            }
+            
+            // Wayback Results
+            if (results.results.wayback) {
+                const wb = results.results.wayback;
+                if (wb.status === 'success' && wb.data.length > 0) {
+                    addLog('WAYBACK', `Found ${wb.data.length} historical snapshots:`);
+                    wb.data.slice(0, 5).forEach(url => {
+                        addLog('WAYBACK', `  → ${url}`);
+                    });
+                    if (wb.data.length > 5) {
+                        addLog('WAYBACK', `  ... and ${wb.data.length - 5} more`);
+                    }
+                } else {
+                    addLog('WAYBACK', `Status: ${wb.status}`);
+                }
+            }
+            
+            // Other modules status
+            for (const [key, value] of Object.entries(results.results)) {
+                if (!['dns', 'subdomains', 'wayback'].includes(key)) {
+                    if (value.message) {
+                        addLog('MODULE', `[${key}] ${value.message}`);
+                    }
+                }
+            }
+        }
+        
+        // Add log line (XSS-safe: uses textContent instead of innerHTML)
+        function addLog(type, message) {
+            const output = document.getElementById('output');
+            const logLine = document.createElement('div');
+            logLine.className = 'log-line';
+            
+            const typeSpan = document.createElement('span');
+            typeSpan.className = 'log-timestamp';
+            typeSpan.textContent = `[${type}]`;
+            
+            const msgSpan = document.createElement('span');
+            msgSpan.className = 'log-message';
+            msgSpan.textContent = message;
+            
+            logLine.appendChild(typeSpan);
+            logLine.appendChild(msgSpan);
+            
+            output.appendChild(logLine);
+            output.scrollTop = output.scrollHeight;
+        }
+    </script>
+</body>
+</html>
