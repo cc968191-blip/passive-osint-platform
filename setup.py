@@ -9,12 +9,12 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 setup(
     name="passive-osint-platform",
     version="1.0.0",
-    author="Security Research Team",
-    author_email="security@example.com",
+    author="cc968191-blip",
+    author_email="cc968191-blip@users.noreply.github.com",
     description="Passive OSINT Reconnaissance Platform for Authorized Security Research",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/example/passive-osint-platform",
+    url="https://github.com/cc968191-blip/passive-osint-platform",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 5 - Production/Stable",

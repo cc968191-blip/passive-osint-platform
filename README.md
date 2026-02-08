@@ -1,215 +1,132 @@
 # Passive OSINT Platform
 
-[![Python 3.8+](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/)
-[![Flask](https://img.shields.io/badge/Framework-Flask-green.svg)](https://flask.palletsprojects.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/cc968191-blip/passive-osint-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/cc968191-blip/passive-osint-platform/actions)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-Plateforme OSINT passive open-source avec **vraies sources de données** pour reconnaissance professionnelle.
-
-> **Legal & Ethics:** This platform collects **public passive data only**. Use only with explicit authorization on assets you own or have permission to test.
+Production-grade passive OSINT reconnaissance platform. Aggregates publicly available intelligence from multiple data sources for authorized security assessments — without active scanning or target interaction.
 
 ---
 
-## Features
+## Modules
 
-### 5 OSINT Modules
-- **Subdomains** — Certificate Transparency enumeration (crt.sh, Wayback, VirusTotal, SecurityTrails)
-- **Ports** — Passive port detection (Shodan, Censys)
-- **Technologies** — Tech stack fingerprinting (HTTP headers, Wappalyzer, TLS)
-- **Vulnerabilities** — CVE database matching
-- **Credentials** — Breach database aggregation
-
-### Security Hardened
-- API token authentication (`X-API-Token`) on all sensitive endpoints
-- Rate limiting (flask-limiter) — 100/hour global, 10/min on reconnaissance
-- HTTP security headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options)
-- CORS restricted to configured origins (no wildcard in production)
-- XSS-safe frontend (textContent, no innerHTML)
-- No raw exceptions exposed to clients
-
-### Real Data Sources
-| Source | API Key | Reliability | Cost |
-|--------|---------|-------------|------|
-| crt.sh | No | 100% | Free |
-| Wayback Machine | No | 95% | Free |
-| DNS Direct | No | 100% | Free |
-| VirusTotal | Yes | 98% | Free tier |
-| Shodan | Yes | 95% | Free tier |
-
----
+| Module | Sources | API Key Required |
+|--------|---------|-----------------|
+| **Subdomains** | crt.sh, Wayback Machine, VirusTotal, SecurityTrails | Optional |
+| **Ports** | Shodan, Censys | Yes |
+| **Technologies** | HTTP headers, Wappalyzer, TLS certificates | No |
+| **Vulnerabilities** | CVE databases, ExploitDB | Optional |
+| **Credentials** | Breach aggregators, paste sites | Optional |
 
 ## Quick Start
 
 ```bash
-# 1. Clone
-git clone https://github.com/YOUR_USERNAME/passive-osint-platform.git
+git clone https://github.com/cc968191-blip/passive-osint-platform.git
 cd passive-osint-platform
-
-# 2. Virtual environment
-python -m venv venv
-source venv/bin/activate  # Windows: venv\Scripts\activate
-
-# 3. Install dependencies
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-
-# 4. Configure environment
-cp .env.example .env
-# Edit .env: set SECRET_KEY and API_TOKEN
-# Generate strong keys: python -c "import secrets; print(secrets.token_hex(32))"
-
-# 5. Run
-python app.py
-# Open http://localhost:5000
+cp .env.example .env       # then edit SECRET_KEY and API_TOKEN
+python app.py              # http://localhost:5000
 ```
 
----
+Generate cryptographic keys:
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
 
 ## Architecture
 
 ```
-passive-osint-platform/
-├── passive_osint/
-│   ├── core/
-│   │   ├── config.py          Configuration management
-│   │   ├── engine.py          Reconnaissance engine
-│   │   └── exceptions.py      Error handling
-│   ├── modules/
-│   │   ├── subdomains.py      Subdomain enumeration
-│   │   ├── ports.py           Port detection
-│   │   ├── technologies.py    Technology stack
-│   │   ├── vulnerabilities.py CVE assessment
-│   │   └── credentials.py     Credential monitoring
-│   ├── reports/
-│   │   └── generator.py       Report generation
-│   └── cli.py                 Command-line interface
-├── templates/
-│   └── dashboard.html         Web dashboard
-├── app.py                     Flask application
-├── config.py                  Flask configuration
-├── wsgi.py                    WSGI entry point
-├── requirements.txt           Python dependencies
-└── .env.example               Environment template
+passive_osint/
+├── core/
+│   ├── config.py            Configuration management
+│   ├── engine.py            Reconnaissance engine
+│   └── exceptions.py        Custom exceptions
+├── modules/
+│   ├── subdomains.py        Certificate Transparency, DNS, Wayback
+│   ├── ports.py             Shodan / Censys passive lookups
+│   ├── technologies.py      HTTP fingerprinting, TLS analysis
+│   ├── vulnerabilities.py   CVE correlation
+│   └── credentials.py       Breach data aggregation
+├── reports/
+│   └── generator.py         JSON / HTML / CSV output
+├── utils.py                 Domain validation, async helpers
+└── cli.py                   Click-based CLI
 ```
 
----
+## REST API
 
-## API
+Authenticated endpoints require the `X-API-Token` header.
 
-All mutating endpoints require `X-API-Token` header.
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/api/health` | No | Health check |
+| `GET` | `/api/status` | No | Platform status and module availability |
+| `POST` | `/api/validate-domain` | Yes | RFC-compliant domain validation |
+| `POST` | `/api/reconnaissance` | Yes | Execute OSINT modules against a domain |
+| `GET` | `/api/config` | Yes | Current platform configuration |
 
-### Health Check (public)
+**Example — start reconnaissance:**
+
 ```bash
-GET /api/health
+curl -X POST http://localhost:5000/api/reconnaissance \
+  -H "Content-Type: application/json" \
+  -H "X-API-Token: <token>" \
+  -d '{"domain":"example.com","modules":["subdomains","technologies"]}'
 ```
-
-### Platform Status (public)
-```bash
-GET /api/status
-```
-
-### Validate Domain (authenticated)
-```bash
-POST /api/validate-domain
-X-API-Token: your-token
-Content-Type: application/json
-
-{"domain": "example.com"}
-```
-
-### Start Reconnaissance (authenticated, rate-limited)
-```bash
-POST /api/reconnaissance
-X-API-Token: your-token
-Content-Type: application/json
-
-{
-  "domain": "example.com",
-  "modules": ["subdomains", "ports", "technologies"]
-}
-```
-
-### Get Config (authenticated, admin)
-```bash
-GET /api/config
-X-API-Token: your-token
-```
-
----
 
 ## Configuration
 
-Copy `.env.example` to `.env` and configure:
+All settings are loaded from environment variables (`.env`). See [`.env.example`](.env.example) for the full reference.
 
-```env
-# Required — generate with: python -c "import secrets; print(secrets.token_hex(32))"
-SECRET_KEY=your-secret-key
-API_TOKEN=your-api-token
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `SECRET_KEY` | Yes | Flask session signing key |
+| `API_TOKEN` | Yes | Bearer token for API authentication |
+| `CORS_ORIGINS` | Recommended | Comma-separated allowed origins |
+| `VIRUSTOTAL_API_KEY` | Optional | Enables VirusTotal module |
+| `SHODAN_API_KEY` | Optional | Enables Shodan module |
+| `SECURITYTRAILS_API_KEY` | Optional | Enables SecurityTrails module |
 
-# Flask
-FLASK_ENV=production
-FLASK_HOST=0.0.0.0
-PORT=5000
+## Security
 
-# CORS — comma-separated origins (no wildcard in production)
-CORS_ORIGINS=http://localhost:5000
-
-# Optional OSINT API keys
-VIRUSTOTAL_API_KEY=
-SHODAN_API_KEY=
-SECURITYTRAILS_API_KEY=
-CENSYS_API_ID=
-CENSYS_API_SECRET=
-
-# Logging
-LOG_LEVEL=INFO
-```
-
----
+- Token-based API authentication on all sensitive endpoints
+- Rate limiting — 100 requests/hour global, 10/min on reconnaissance
+- HTTP security headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options)
+- CORS restricted to configured origins
+- Strict RFC 1035 domain validation
+- No raw exceptions exposed to clients
 
 ## Deployment
 
-### Development
+**Development:**
+
 ```bash
 FLASK_ENV=development python app.py
 ```
 
-### Production (Gunicorn)
-```bash
-gunicorn wsgi:app --workers 4 --bind 0.0.0.0:5000
-```
-
-### Docker
-```bash
-docker build -t osint-platform .
-docker run -p 5000:5000 --env-file .env osint-platform
-```
-
----
-
-## CLI Usage
+**Production (Gunicorn):**
 
 ```bash
-# Basic reconnaissance
-python -m passive_osint.cli main --domain example.com
-
-# Specific modules with JSON output
-python -m passive_osint.cli main --domain example.com --modules subdomains ports --output json --file report.json
-
-# Verbose mode
-python -m passive_osint.cli main --domain example.com --verbose
+gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
 ```
 
----
+**Render:**
 
-## Legal Notice
+The included [`render.yaml`](render.yaml) provides a one-click deploy configuration.
 
-**This tool is for authorized security testing only.**
+## Testing
 
-- Use only on domains you own or have explicit written permission to test
-- Complies with passive-only data collection principles
-- No active scanning, exploitation, or network interaction beyond data retrieval
-- Users assume full responsibility for compliance with applicable laws
+```bash
+pip install pytest
+python -m pytest tests/ -v
+```
+
+## Legal
+
+This tool is designed exclusively for **authorized passive reconnaissance**. It does not perform active scanning, exploitation, or direct interaction with target infrastructure. Users are solely responsible for ensuring compliance with all applicable laws and regulations.
 
 ## License
 
-MIT License — see [LICENSE](LICENSE) file for details.
+[MIT](LICENSE)
