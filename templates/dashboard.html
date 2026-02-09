@@ -1,581 +1,698 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PASSIVE OSINT PLATFORM - Dashboard</title>
+    <title>Passive OSINT Platform</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg: #0a0e17;
+            --surface: #111827;
+            --surface-2: #1f2937;
+            --border: #374151;
+            --text: #e5e7eb;
+            --text-dim: #9ca3af;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --green: #10b981;
+            --red: #ef4444;
+            --amber: #f59e0b;
+            --cyan: #06b6d4;
         }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Courier New', 'Monaco', monospace;
-            background: #000000;
-            color: #ffffff;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
             min-height: 100vh;
-            padding: 20px;
-            line-height: 1.7;
         }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        header {
-            border-bottom: 2px solid #ffffff;
-            padding-bottom: 25px;
-            margin-bottom: 40px;
-            text-align: left;
-        }
-        
-        header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            font-weight: normal;
-            letter-spacing: 3px;
-        }
-        
-        header .status-indicator {
-            font-size: 0.95em;
-            letter-spacing: 1px;
-            margin-top: 10px;
-        }
-        
-        .status-indicator span {
-            border: 1px solid #ffffff;
-            padding: 5px 10px;
-            margin-right: 10px;
-            display: inline-block;
-        }
-        
-        .status-indicator .active {
-            background: #000000;
-            color: #ffffff;
-        }
-        
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            margin-bottom: 40px;
-        }
-        
-        .input-section {
-            border: 1px solid #ffffff;
-            padding: 25px;
-        }
-        
-        .input-section h2 {
-            font-size: 1.3em;
-            margin-bottom: 20px;
-            font-weight: normal;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-        
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: normal;
-            letter-spacing: 1px;
-        }
-        
-        .form-group input[type="text"],
-        .form-group textarea {
-            width: 100%;
-            background: #000000;
-            border: 1px solid #ffffff;
-            color: #ffffff;
-            padding: 12px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.95em;
-            line-height: 1.5;
-        }
-        
-        .form-group input[type="text"]:focus,
-        .form-group textarea:focus {
-            outline: none;
-            background: #ffffff;
-            color: #000000;
-        }
-        
-        .checkbox-group {
-            margin-bottom: 25px;
-        }
-        
-        .checkbox-group label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: normal;
-            letter-spacing: 1px;
-        }
-        
-        .module-checkbox {
+
+        /* --- NAV --- */
+        nav {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            height: 56px;
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
+            justify-content: space-between;
         }
-        
-        .module-checkbox input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            margin-right: 10px;
-            accent-color: #ffffff;
-            background: #000000;
-            border: 1px solid #ffffff;
-            cursor: pointer;
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: .3px;
         }
-        
-        .module-checkbox label {
-            margin: 0;
-            cursor: pointer;
-            font-size: 0.95em;
+        .nav-brand svg { color: var(--accent); }
+        .nav-meta {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: .82rem;
+            color: var(--text-dim);
         }
-        
-        button {
-            background: #000000;
-            border: 1px solid #ffffff;
-            color: #ffffff;
-            padding: 15px 30px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.95em;
-            cursor: pointer;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-        
-        button:hover {
-            background: #ffffff;
-            color: #000000;
-        }
-        
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .output-section {
-            border: 1px solid #ffffff;
-            padding: 25px;
-        }
-        
-        .output-section h2 {
-            font-size: 1.3em;
-            margin-bottom: 20px;
-            font-weight: normal;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-        
-        .output-content {
-            background: #000000;
-            border: 1px solid #ffffff;
-            padding: 15px;
-            min-height: 400px;
-            max-height: 600px;
-            overflow-y: auto;
-            font-size: 0.9em;
-            line-height: 1.6;
-        }
-        
-        .output-content::-webkit-scrollbar {
-            width: 10px;
-        }
-        
-        .output-content::-webkit-scrollbar-track {
-            background: #000000;
-        }
-        
-        .output-content::-webkit-scrollbar-thumb {
-            background: #ffffff;
-            border: 1px solid #000000;
-        }
-        
-        .log-line {
-            padding: 5px 0;
-            border-bottom: 1px solid #333333;
-        }
-        
-        .log-line:last-child {
-            border-bottom: none;
-        }
-        
-        .log-timestamp {
-            color: #ffffff;
-        }
-        
-        .log-message {
-            color: #ffffff;
-            margin-left: 20px;
-        }
-        
-        .status-badge {
+        .nav-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--green);
             display: inline-block;
-            padding: 8px 12px;
-            border: 1px solid #ffffff;
-            margin-bottom: 15px;
-            font-size: 0.85em;
-            letter-spacing: 1px;
         }
-        
-        .status-running {
-            animation: blink 1s infinite;
+
+        /* --- LAYOUT --- */
+        .wrapper {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 32px 24px;
         }
-        
-        @keyframes blink {
-            0%, 49% { opacity: 1; }
-            50%, 100% { opacity: 0.5; }
+
+        /* --- PHASE: INPUT --- */
+        #phase-input { }
+        .hero {
+            text-align: center;
+            margin-bottom: 40px;
         }
-        
-        .modules-status {
-            border-top: 1px solid #ffffff;
-            padding-top: 20px;
-            margin-top: 20px;
+        .hero h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 8px;
         }
-        
-        .module-status {
+        .hero p {
+            color: var(--text-dim);
+            font-size: .95rem;
+        }
+        .input-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        .field-label {
+            display: block;
+            font-size: .8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        .domain-input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 14px 16px;
+            font-size: 1rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            transition: border-color .2s;
+        }
+        .domain-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        .modules-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin: 20px 0 28px;
+        }
+        .mod-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color .2s;
+            font-size: .88rem;
+        }
+        .mod-item:hover { border-color: var(--accent); }
+        .mod-item input { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
+        .mod-item label { cursor: pointer; flex: 1; }
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: .95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s;
+            letter-spacing: .3px;
+        }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+        /* --- PHASE: SCANNING --- */
+        #phase-scan { display: none; text-align: center; padding: 80px 0; }
+        .scan-spinner {
+            width: 64px; height: 64px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+            margin: 0 auto 24px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        #phase-scan h2 { font-size: 1.3rem; margin-bottom: 8px; }
+        #scan-domain-label { color: var(--accent); font-family: monospace; }
+        #scan-elapsed {
+            margin-top: 16px;
+            font-size: 2rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-dim);
+        }
+        .scan-steps {
+            margin-top: 24px;
+            display: inline-flex;
+            flex-direction: column;
+            gap: 6px;
+            text-align: left;
+            font-size: .85rem;
+            color: var(--text-dim);
+        }
+        .scan-step.done { color: var(--green); }
+        .scan-step.active { color: var(--text); }
+
+        /* --- PHASE: RESULTS --- */
+        #phase-results { display: none; }
+        .results-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .results-header h2 { font-size: 1.3rem; }
+        .results-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: .85rem;
+            color: var(--text-dim);
+        }
+        .results-meta span { display: flex; align-items: center; gap: 4px; }
+        .btn-outline {
+            padding: 10px 20px;
+            background: transparent;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            font-size: .85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s;
+        }
+        .btn-outline:hover { background: var(--accent); color: #fff; }
+
+        /* Result cards */
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .result-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .result-card.full-width {
+            grid-column: 1 / -1;
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface-2);
+        }
+        .card-title {
+            font-weight: 600;
+            font-size: .9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-badge {
+            font-size: .7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+        .badge-success { background: rgba(16,185,129,.15); color: var(--green); }
+        .badge-warn { background: rgba(245,158,11,.15); color: var(--amber); }
+        .badge-error { background: rgba(239,68,68,.15); color: var(--red); }
+        .badge-info { background: rgba(6,182,212,.15); color: var(--cyan); }
+        .card-body { padding: 16px 18px; }
+        .card-body p { font-size: .85rem; color: var(--text-dim); margin-bottom: 12px; }
+
+        .data-list {
+            list-style: none;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+        .data-list li {
+            padding: 7px 10px;
+            font-size: .83rem;
+            font-family: 'JetBrains Mono', monospace;
+            border-bottom: 1px solid var(--border);
+            word-break: break-all;
+        }
+        .data-list li:last-child { border-bottom: none; }
+        .data-list li:hover { background: var(--surface-2); }
+        .data-count {
+            font-size: .78rem;
+            color: var(--text-dim);
+            padding: 8px 10px;
+            border-top: 1px solid var(--border);
+            text-align: right;
+        }
+
+        .kv-row {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #ffffff;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: .85rem;
         }
-        
-        .module-status:last-child {
-            border-bottom: none;
-        }
-        
-        .module-name {
-            font-weight: normal;
-            letter-spacing: 1px;
-        }
-        
-        .module-state {
-            letter-spacing: 1px;
-        }
-        
-        footer {
-            border-top: 2px solid #ffffff;
-            padding-top: 25px;
+        .kv-row:last-child { border-bottom: none; }
+        .kv-key { color: var(--text-dim); }
+        .kv-val { font-family: monospace; font-weight: 600; }
+
+        .no-data {
             text-align: center;
-            color: #ffffff;
-            font-size: 0.9em;
-            letter-spacing: 1px;
+            padding: 24px;
+            color: var(--text-dim);
+            font-size: .85rem;
         }
-        
-        .error {
-            background: #000000;
-            border: 1px solid #ffffff;
-            padding: 15px;
-            margin: 15px 0;
-            color: #ffffff;
+        .no-data-icon { font-size: 1.5rem; margin-bottom: 8px; }
+
+        /* --- TOKEN MODAL --- */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,.7);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100;
         }
-        
-        .success {
-            background: #000000;
-            border: 1px solid #ffffff;
-            padding: 15px;
-            margin: 15px 0;
-            color: #ffffff;
+        .modal-overlay.hidden { display: none; }
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            width: 420px;
+            max-width: 90vw;
+        }
+        .modal h3 { margin-bottom: 8px; font-size: 1.1rem; }
+        .modal p { font-size: .85rem; color: var(--text-dim); margin-bottom: 16px; }
+        .modal input {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            padding: 12px;
+            font-family: monospace;
+            font-size: .9rem;
+            margin-bottom: 16px;
+        }
+        .modal input:focus { outline: none; border-color: var(--accent); }
+
+        /* --- FOOTER --- */
+        footer {
+            text-align: center;
+            padding: 32px 0 16px;
+            font-size: .78rem;
+            color: var(--text-dim);
+            border-top: 1px solid var(--border);
+            margin-top: 48px;
+        }
+
+        /* --- SCROLLBAR --- */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .modules-grid { grid-template-columns: 1fr; }
+            .results-grid { grid-template-columns: 1fr; }
+            .results-header { flex-direction: column; align-items: flex-start; }
+            nav { padding: 0 16px; }
+            .wrapper { padding: 20px 16px; }
         }
     </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>PASSIVE OSINT PLATFORM</h1>
-            <div class="status-indicator">
-                <span id="status" class="active">STATUS: ONLINE</span>
-                <span id="time">TIME: --:--:--</span>
+
+    <!-- NAV -->
+    <nav>
+        <div class="nav-brand">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            Passive OSINT Platform
+        </div>
+        <div class="nav-meta">
+            <span><span class="nav-dot"></span>&nbsp; Online</span>
+            <span id="nav-time"></span>
+        </div>
+    </nav>
+
+    <div class="wrapper">
+
+        <!-- PHASE 1: INPUT -->
+        <div id="phase-input">
+            <div class="hero">
+                <h1>Reconnaissance</h1>
+                <p>Enter a target domain to collect passive intelligence from public data sources.</p>
             </div>
-        </header>
-        
-        <div class="main-content">
-            <!-- Input Section -->
-            <div class="input-section">
-                <h2>INPUT</h2>
-                
+            <div class="input-card">
                 <form id="recon-form">
-                    <div class="form-group">
-                        <label for="domain">TARGET DOMAIN</label>
-                        <input type="text" id="domain" name="domain" placeholder="example.com" required>
-                    </div>
-                    
-                    <div class="checkbox-group">
-                        <label>MODULES</label>
-                        <div class="module-checkbox">
-                            <input type="checkbox" id="module-subdomains" name="modules" value="subdomains" checked>
-                            <label for="module-subdomains">Subdomain Enumeration</label>
+                    <label class="field-label">Target Domain</label>
+                    <input type="text" id="domain" class="domain-input" placeholder="example.com" required autocomplete="off" spellcheck="false">
+
+                    <label class="field-label" style="margin-top:20px;">Modules</label>
+                    <div class="modules-grid">
+                        <div class="mod-item">
+                            <input type="checkbox" id="m-sub" name="modules" value="subdomains" checked>
+                            <label for="m-sub">Subdomains</label>
                         </div>
-                        <div class="module-checkbox">
-                            <input type="checkbox" id="module-ports" name="modules" value="ports" checked>
-                            <label for="module-ports">Port Detection</label>
+                        <div class="mod-item">
+                            <input type="checkbox" id="m-port" name="modules" value="ports" checked>
+                            <label for="m-port">Ports</label>
                         </div>
-                        <div class="module-checkbox">
-                            <input type="checkbox" id="module-technologies" name="modules" value="technologies" checked>
-                            <label for="module-technologies">Technology Stack</label>
+                        <div class="mod-item">
+                            <input type="checkbox" id="m-tech" name="modules" value="technologies" checked>
+                            <label for="m-tech">Technologies</label>
                         </div>
-                        <div class="module-checkbox">
-                            <input type="checkbox" id="module-vulnerabilities" name="modules" value="vulnerabilities" checked>
-                            <label for="module-vulnerabilities">Vulnerability Assessment</label>
+                        <div class="mod-item">
+                            <input type="checkbox" id="m-vuln" name="modules" value="vulnerabilities" checked>
+                            <label for="m-vuln">Vulnerabilities</label>
                         </div>
-                        <div class="module-checkbox">
-                            <input type="checkbox" id="module-credentials" name="modules" value="credentials" checked>
-                            <label for="module-credentials">Credential Monitoring</label>
+                        <div class="mod-item">
+                            <input type="checkbox" id="m-cred" name="modules" value="credentials" checked>
+                            <label for="m-cred">Credentials</label>
                         </div>
                     </div>
-                    
-                    <button type="submit" id="submit-btn">EXECUTE RECONNAISSANCE</button>
+
+                    <button type="submit" class="btn-primary" id="submit-btn">Start Reconnaissance</button>
                 </form>
             </div>
-            
-            <!-- Output Section -->
-            <div class="output-section">
-                <h2>OUTPUT</h2>
-                
-                <div id="status-badges">
-                    <span class="status-badge" id="status-label">READY</span>
-                </div>
-                
-                <div class="output-content" id="output">
-                    <div class="log-line">
-                        <span class="log-timestamp">[INIT]</span>
-                        <span class="log-message">Passive OSINT Platform initialized</span>
-                    </div>
-                    <div class="log-line">
-                        <span class="log-timestamp">[SYSTEM]</span>
-                        <span class="log-message">Waiting for input...</span>
-                    </div>
-                </div>
-                
-                <div class="modules-status" id="modules-status">
-                    <div style="margin-bottom: 10px; letter-spacing: 1px; font-weight: normal;">MODULE STATUS</div>
-                </div>
+        </div>
+
+        <!-- PHASE 2: SCANNING -->
+        <div id="phase-scan">
+            <div class="scan-spinner"></div>
+            <h2>Scanning <span id="scan-domain-label"></span></h2>
+            <p style="color:var(--text-dim);font-size:.9rem;">Collecting passive intelligence from public sources</p>
+            <div id="scan-elapsed">00:00</div>
+            <div class="scan-steps" id="scan-steps">
+                <div class="scan-step active">Validating domain...</div>
+                <div class="scan-step">Resolving DNS...</div>
+                <div class="scan-step">Querying Certificate Transparency...</div>
+                <div class="scan-step">Querying Wayback Machine...</div>
+                <div class="scan-step">Checking additional modules...</div>
             </div>
         </div>
-        
-        <footer>
-            <p>PASSIVE OSINT PLATFORM | INTELLIGENCE RECONNAISSANCE | ENTERPRISE GRADE</p>
-            <p style="margin-top: 10px;">Version 1.0.0 | MIT License</p>
-        </footer>
+
+        <!-- PHASE 3: RESULTS -->
+        <div id="phase-results">
+            <div class="results-header">
+                <div>
+                    <h2 id="results-title">Results</h2>
+                    <div class="results-meta">
+                        <span id="results-domain"></span>
+                        <span id="results-time"></span>
+                        <span id="results-duration"></span>
+                    </div>
+                </div>
+                <button class="btn-outline" id="btn-new-scan">New Scan</button>
+            </div>
+            <div class="results-grid" id="results-grid"></div>
+        </div>
+
     </div>
-    
+
+    <footer>
+        Passive OSINT Platform v1.0.0 &mdash; Authorized passive reconnaissance only &mdash; MIT License
+    </footer>
+
+    <!-- TOKEN MODAL -->
+    <div class="modal-overlay hidden" id="token-modal">
+        <div class="modal">
+            <h3>Authentication Required</h3>
+            <p>Enter your API token to access the platform. This token authenticates all reconnaissance requests.</p>
+            <input type="text" id="token-input" placeholder="Paste your API token" spellcheck="false" autocomplete="off">
+            <button class="btn-primary" id="token-submit">Authenticate</button>
+        </div>
+    </div>
+
     <script>
-        // API Token - must be set for authenticated endpoints
+        /* ---- State ---- */
         let API_TOKEN = localStorage.getItem('api_token') || '';
-        
-        function setApiToken(token) {
-            API_TOKEN = token;
-            localStorage.setItem('api_token', token);
+        let scanTimer = null;
+        let scanStart = 0;
+
+        /* ---- Auth ---- */
+        function setApiToken(t) { API_TOKEN = t; localStorage.setItem('api_token', t); }
+        function headers() { return { 'Content-Type': 'application/json', 'X-API-Token': API_TOKEN }; }
+
+        /* ---- Clock ---- */
+        function tickClock() {
+            document.getElementById('nav-time').textContent = new Date().toLocaleTimeString('en-GB');
         }
-        
-        function getAuthHeaders() {
-            return {
-                'Content-Type': 'application/json',
-                'X-API-Token': API_TOKEN
-            };
+        setInterval(tickClock, 1000);
+        tickClock();
+
+        /* ---- Elapsed timer ---- */
+        function startTimer() {
+            scanStart = Date.now();
+            const el = document.getElementById('scan-elapsed');
+            scanTimer = setInterval(() => {
+                const s = Math.floor((Date.now() - scanStart) / 1000);
+                const m = String(Math.floor(s / 60)).padStart(2, '0');
+                const sec = String(s % 60).padStart(2, '0');
+                el.textContent = m + ':' + sec;
+            }, 200);
         }
-        
-        // Update time display
-        function updateTime() {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('fr-FR');
-            document.getElementById('time').textContent = `TIME: ${timeStr}`;
+        function stopTimer() {
+            clearInterval(scanTimer);
+            return ((Date.now() - scanStart) / 1000).toFixed(1);
         }
-        setInterval(updateTime, 1000);
-        updateTime();
-        
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
+
+        /* ---- Phase switching ---- */
+        function showPhase(name) {
+            document.getElementById('phase-input').style.display = name === 'input' ? '' : 'none';
+            document.getElementById('phase-scan').style.display = name === 'scan' ? '' : 'none';
+            document.getElementById('phase-results').style.display = name === 'results' ? '' : 'none';
+        }
+
+        /* ---- Scan step progress ---- */
+        function advanceStep(idx) {
+            const steps = document.querySelectorAll('#scan-steps .scan-step');
+            steps.forEach((s, i) => {
+                s.className = 'scan-step' + (i < idx ? ' done' : i === idx ? ' active' : '');
+                if (i < idx) s.textContent = '\u2713 ' + s.textContent.replace(/^\u2713\s*/, '');
+            });
+        }
+
+        /* ---- Init ---- */
+        document.addEventListener('DOMContentLoaded', () => {
             if (!API_TOKEN) {
-                const token = prompt('Entrez votre API Token (X-API-Token):');
-                if (token) setApiToken(token);
+                document.getElementById('token-modal').classList.remove('hidden');
             }
-            loadStatus();
         });
-        
-        // Load platform status
-        async function loadStatus() {
-            try {
-                const response = await fetch('/api/status');
-                const data = await response.json();
-                console.log('Platform status:', data);
-            } catch (error) {
-                console.error('Failed to load status:', error);
+
+        document.getElementById('token-submit').addEventListener('click', () => {
+            const v = document.getElementById('token-input').value.trim();
+            if (v) {
+                setApiToken(v);
+                document.getElementById('token-modal').classList.add('hidden');
             }
-        }
-        
-        // Form submission
-        document.getElementById('recon-form').addEventListener('submit', async function(e) {
+        });
+
+        document.getElementById('token-input').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('token-submit').click();
+        });
+
+        /* ---- New Scan ---- */
+        document.getElementById('btn-new-scan').addEventListener('click', () => {
+            document.getElementById('domain').value = '';
+            showPhase('input');
+        });
+
+        /* ---- Form submit ---- */
+        document.getElementById('recon-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const domain = document.getElementById('domain').value;
+            const domain = document.getElementById('domain').value.trim();
             const modules = Array.from(document.querySelectorAll('input[name="modules"]:checked')).map(el => el.value);
-            
-            if (!domain) {
-                addLog('ERROR', 'Domain is required');
-                return;
-            }
-            
-            if (modules.length === 0) {
-                addLog('ERROR', 'At least one module must be selected');
-                return;
-            }
-            
-            // Disable button
-            const submitBtn = document.getElementById('submit-btn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'PROCESSING...';
-            
-            // Update status
-            document.getElementById('status-label').textContent = 'PROCESSING';
-            document.getElementById('status-label').classList.add('status-running');
-            
-            addLog('INIT', `Target domain: ${domain}`);
-            addLog('INIT', `Selected modules: ${modules.join(', ')}`);
-            addLog('PROCESS', 'Validating domain...');
-            
+            if (!domain || modules.length === 0) return;
+
+            /* Reset scan steps text */
+            const stepEls = document.querySelectorAll('#scan-steps .scan-step');
+            const stepTexts = ['Validating domain...','Resolving DNS...','Querying Certificate Transparency...','Querying Wayback Machine...','Checking additional modules...'];
+            stepEls.forEach((s,i) => { s.textContent = stepTexts[i]; s.className = 'scan-step'; });
+
+            document.getElementById('scan-domain-label').textContent = domain;
+            showPhase('scan');
+            startTimer();
+            advanceStep(0);
+
             try {
-                // Validate domain
-                let response = await fetch('/api/validate-domain', {
-                    method: 'POST',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify({ domain: domain })
+                /* Validate */
+                let res = await fetch('/api/validate-domain', {
+                    method: 'POST', headers: headers(),
+                    body: JSON.stringify({ domain })
                 });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    addLog('ERROR', error.message);
-                    return;
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.message || err.error || 'Validation failed');
                 }
-                
-                const validation = await response.json();
-                addLog('SUCCESS', `Domain validated: ${validation.domain}`);
-                
-                // Start reconnaissance
-                addLog('PROCESS', 'Starting reconnaissance...');
-                response = await fetch('/api/reconnaissance', {
-                    method: 'POST',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify({
-                        domain: validation.domain,
-                        modules: modules
-                    })
+                const val = await res.json();
+                advanceStep(1);
+
+                /* Recon */
+                advanceStep(2);
+                res = await fetch('/api/reconnaissance', {
+                    method: 'POST', headers: headers(),
+                    body: JSON.stringify({ domain: val.domain, modules })
                 });
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    addLog('ERROR', error.error);
-                    return;
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || 'Reconnaissance failed');
                 }
-                
-                const results = await response.json();
-                addLog('SUCCESS', `Reconnaissance initiated for ${results.domain}`);
-                
-                // Display real results
-                displayResults(results);
-                
-                addLog('SUCCESS', 'Reconnaissance complete');
-                addLog('RESULT', `Total modules executed: ${modules.length}`);
-                
-            } catch (error) {
-                addLog('ERROR', `Exception: ${error.message}`);
-            } finally {
-                // Re-enable button
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'EXECUTE RECONNAISSANCE';
-                document.getElementById('status-label').textContent = 'READY';
-                document.getElementById('status-label').classList.remove('status-running');
+                advanceStep(4);
+                const data = await res.json();
+                const elapsed = stopTimer();
+
+                renderResults(data, elapsed);
+                showPhase('results');
+
+            } catch (err) {
+                stopTimer();
+                showPhase('results');
+                document.getElementById('results-title').textContent = 'Error';
+                document.getElementById('results-domain').textContent = domain;
+                document.getElementById('results-time').textContent = '';
+                document.getElementById('results-duration').textContent = '';
+                document.getElementById('results-grid').innerHTML =
+                    '<div class="result-card full-width"><div class="card-header"><span class="card-title">Error</span><span class="card-badge badge-error">FAILED</span></div><div class="card-body"><p>' + escHtml(err.message) + '</p></div></div>';
             }
         });
-        
-        // Display real results
-        function displayResults(results) {
-            addLog('RESULTS', '=== RECONNAISSANCE RESULTS ===');
-            addLog('RESULTS', `Domain: ${results.domain}`);
-            addLog('RESULTS', `Timestamp: ${results.timestamp}`);
-            addLog('RESULTS', '');
-            
-            // DNS Results
-            if (results.results.dns) {
-                const dns = results.results.dns;
-                if (dns.status === 'success') {
-                    addLog('DNS', `IP Address: ${dns.ip}`);
-                } else {
-                    addLog('DNS', `Status: ${dns.status} - ${dns.error || ''}`);
+
+        /* ---- Render results ---- */
+        function renderResults(data, elapsed) {
+            document.getElementById('results-title').textContent = 'Reconnaissance Results';
+            document.getElementById('results-domain').textContent = data.domain;
+            document.getElementById('results-time').textContent = new Date(data.timestamp).toLocaleString('en-GB');
+            document.getElementById('results-duration').textContent = elapsed + 's';
+
+            const grid = document.getElementById('results-grid');
+            grid.innerHTML = '';
+
+            /* DNS */
+            if (data.results.dns) {
+                const d = data.results.dns;
+                grid.appendChild(makeCard('DNS Resolution', d.status === 'success' ? 'success' : 'error',
+                    d.status === 'success'
+                        ? kvHtml([['IP Address', d.ip], ['Source', 'Direct DNS'], ['Status', 'Resolved']])
+                        : '<p>' + escHtml(d.error || 'Resolution failed') + '</p>'
+                ));
+            }
+
+            /* Subdomains */
+            if (data.results.subdomains) {
+                const s = data.results.subdomains;
+                if (s.status === 'success' && s.data && s.data.length > 0) {
+                    grid.appendChild(makeCard(
+                        'Subdomains (' + s.data.length + ')', 'success',
+                        listHtml(s.data) + '<div class="data-count">Source: ' + escHtml(s.source) + '</div>',
+                        true
+                    ));
+                } else if (!s.simulated) {
+                    grid.appendChild(makeCard('Subdomains', 'warn',
+                        '<div class="no-data"><div class="no-data-icon">&#8709;</div>No subdomains discovered</div>'
+                    ));
                 }
             }
-            
-            // Subdomain Results
-            if (results.results.subdomains) {
-                const subs = results.results.subdomains;
-                if (subs.status === 'success' && subs.data.length > 0) {
-                    addLog('SUBDOMAINS', `Found ${subs.data.length} subdomains from ${subs.source}:`);
-                    subs.data.slice(0, 5).forEach(sub => {
-                        addLog('SUBDOMAINS', `  → ${sub}`);
-                    });
-                    if (subs.data.length > 5) {
-                        addLog('SUBDOMAINS', `  ... and ${subs.data.length - 5} more`);
-                    }
-                } else {
-                    addLog('SUBDOMAINS', `Status: ${subs.status}`);
+
+            /* Wayback */
+            if (data.results.wayback) {
+                const w = data.results.wayback;
+                if (w.status === 'success' && w.data && w.data.length > 0) {
+                    grid.appendChild(makeCard(
+                        'Wayback Machine (' + w.data.length + ')', 'success',
+                        listHtml(w.data) + '<div class="data-count">Source: Wayback Machine CDX API</div>',
+                        true
+                    ));
+                } else if (!w.simulated) {
+                    grid.appendChild(makeCard('Wayback Machine', 'warn',
+                        '<div class="no-data"><div class="no-data-icon">&#8709;</div>No historical data found</div>'
+                    ));
                 }
             }
-            
-            // Wayback Results
-            if (results.results.wayback) {
-                const wb = results.results.wayback;
-                if (wb.status === 'success' && wb.data.length > 0) {
-                    addLog('WAYBACK', `Found ${wb.data.length} historical snapshots:`);
-                    wb.data.slice(0, 5).forEach(url => {
-                        addLog('WAYBACK', `  → ${url}`);
-                    });
-                    if (wb.data.length > 5) {
-                        addLog('WAYBACK', `  ... and ${wb.data.length - 5} more`);
-                    }
-                } else {
-                    addLog('WAYBACK', `Status: ${wb.status}`);
-                }
-            }
-            
-            // Other modules status
-            for (const [key, value] of Object.entries(results.results)) {
-                if (!['dns', 'subdomains', 'wayback'].includes(key)) {
-                    if (value.message) {
-                        addLog('MODULE', `[${key}] ${value.message}`);
-                    }
+
+            /* Modules requiring API keys */
+            for (const [key, val] of Object.entries(data.results)) {
+                if (['dns', 'subdomains', 'wayback'].includes(key)) continue;
+                if (val.simulated) {
+                    grid.appendChild(makeCard(
+                        capitalize(key), 'info',
+                        '<div class="no-data"><div class="no-data-icon">&#128273;</div>Requires API key configuration<br><span style="font-size:.78rem;color:var(--text-dim);">Configure the corresponding API key in .env to enable this module.</span></div>'
+                    ));
+                } else if (val.status === 'success' && val.data) {
+                    grid.appendChild(makeCard(capitalize(key), 'success', listHtml(val.data)));
                 }
             }
         }
-        
-        // Add log line (XSS-safe: uses textContent instead of innerHTML)
-        function addLog(type, message) {
-            const output = document.getElementById('output');
-            const logLine = document.createElement('div');
-            logLine.className = 'log-line';
-            
-            const typeSpan = document.createElement('span');
-            typeSpan.className = 'log-timestamp';
-            typeSpan.textContent = `[${type}]`;
-            
-            const msgSpan = document.createElement('span');
-            msgSpan.className = 'log-message';
-            msgSpan.textContent = message;
-            
-            logLine.appendChild(typeSpan);
-            logLine.appendChild(msgSpan);
-            
-            output.appendChild(logLine);
-            output.scrollTop = output.scrollHeight;
+
+        /* ---- Helpers ---- */
+        function escHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+        function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+        function makeCard(title, badge, bodyHtml, fullWidth) {
+            const card = document.createElement('div');
+            card.className = 'result-card' + (fullWidth ? ' full-width' : '');
+            const badgeClass = badge === 'success' ? 'badge-success' : badge === 'error' ? 'badge-error' : badge === 'warn' ? 'badge-warn' : 'badge-info';
+            const badgeLabel = badge === 'success' ? 'OK' : badge === 'error' ? 'FAIL' : badge === 'warn' ? 'EMPTY' : 'KEY REQUIRED';
+            card.innerHTML =
+                '<div class="card-header"><span class="card-title">' + escHtml(title) + '</span><span class="card-badge ' + badgeClass + '">' + badgeLabel + '</span></div>' +
+                '<div class="card-body">' + bodyHtml + '</div>';
+            return card;
+        }
+
+        function listHtml(items) {
+            let h = '<ul class="data-list">';
+            items.forEach(item => { h += '<li>' + escHtml(String(item)) + '</li>'; });
+            h += '</ul>';
+            return h;
+        }
+
+        function kvHtml(pairs) {
+            let h = '';
+            pairs.forEach(([k, v]) => {
+                h += '<div class="kv-row"><span class="kv-key">' + escHtml(k) + '</span><span class="kv-val">' + escHtml(String(v)) + '</span></div>';
+            });
+            return h;
         }
     </script>
 </body>
