@@ -2,36 +2,31 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 
-type ModuleResult = {
-  source: string;
-  status: string;
-  data?: string[];
-  ip?: string;
-  error?: string;
-  simulated?: boolean;
-  message?: string;
-};
+/* eslint-disable */
+type R = Record<string, any>;
 
 type ReconResponse = {
   domain: string;
   timestamp: string;
   modules_run: string[];
   status: string;
-  results: Record<string, ModuleResult>;
+  results: Record<string, R>;
 };
 
 const MODULES = [
-  { id: "subdomains", label: "Subdomains" },
-  { id: "ports", label: "Ports" },
-  { id: "technologies", label: "Technologies" },
-  { id: "vulnerabilities", label: "Vulnerabilities" },
-  { id: "credentials", label: "Credentials" },
+  { id: "subdomains", label: "Subdomains", desc: "Certificate Transparency" },
+  { id: "technologies", label: "Technologies", desc: "HTTP Fingerprinting" },
+  { id: "security_headers", label: "Security Headers", desc: "Header Analysis" },
+  { id: "whois", label: "WHOIS / RDAP", desc: "Domain Registration" },
 ];
 
 const STEPS = [
   "Validating domain...",
-  "Resolving DNS...",
-  "Querying crt.sh (Certificate Transparency)...",
+  "Resolving DNS (A, MX, NS, TXT)...",
+  "Querying Certificate Transparency...",
+  "Fingerprinting technologies...",
+  "Analyzing security headers...",
+  "Querying WHOIS / RDAP...",
   "Querying Wayback Machine...",
   "Processing results...",
 ];
@@ -49,6 +44,7 @@ export default function Home() {
   const [error, setError] = useState("");
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startRef = useRef(0);
+  const stepRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startTimer = useCallback(() => {
     startRef.current = Date.now();
@@ -62,12 +58,14 @@ export default function Home() {
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) clearInterval(timerRef.current);
+    if (stepRef.current) clearInterval(stepRef.current);
     return ((Date.now() - startRef.current) / 1000).toFixed(1);
   }, []);
 
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      if (stepRef.current) clearInterval(stepRef.current);
     };
   }, []);
 
@@ -89,16 +87,23 @@ export default function Home() {
     setData(null);
     startTimer();
 
-    try {
-      setCurrentStep(1);
+    // Animate steps progressively
+    let step = 0;
+    stepRef.current = setInterval(() => {
+      step++;
+      if (step < STEPS.length - 1) {
+        setCurrentStep(step);
+      }
+    }, 2500);
 
+    try {
       const res = await fetch("/api/reconnaissance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ domain: d, modules: selectedModules }),
       });
 
-      setCurrentStep(4);
+      setCurrentStep(STEPS.length);
 
       if (!res.ok) {
         const err = await res.json();
@@ -125,8 +130,7 @@ export default function Home() {
     setError("");
   };
 
-  // --- RENDER ---
-
+  // ─── SCAN PHASE ───
   if (phase === "scan") {
     return (
       <div className="text-center py-20">
@@ -135,7 +139,7 @@ export default function Home() {
           Scanning <span className="font-bold">{domain}</span>
         </h2>
         <p className="text-neutral-600 text-xs">
-          Collecting intelligence from public sources
+          Running {selectedModules.length + 2} modules in parallel
         </p>
         <div className="mt-5 text-3xl font-bold text-neutral-500 tracking-widest">
           {elapsed}
@@ -148,11 +152,11 @@ export default function Home() {
                 i < currentStep
                   ? "text-white"
                   : i === currentStep
-                  ? "text-neutral-400"
+                  ? "text-neutral-400 animate-pulse"
                   : "text-neutral-700"
               }
             >
-              {i < currentStep ? `✓ ${step}` : step}
+              {i < currentStep ? `✓ ${step}` : `○ ${step}`}
             </div>
           ))}
         </div>
@@ -160,15 +164,12 @@ export default function Home() {
     );
   }
 
+  // ─── RESULTS PHASE ───
   if (phase === "results") {
     if (error) {
       return (
         <div>
-          <ResultsHeader
-            title="ERROR"
-            meta={domain}
-            onNewScan={handleNewScan}
-          />
+          <ResultsHeader title="ERROR" meta={domain} onNewScan={handleNewScan} />
           <Card title="Error" badge="fail">
             <p className="text-neutral-500 text-sm">{error}</p>
           </Card>
@@ -178,14 +179,24 @@ export default function Home() {
 
     if (!data) return null;
 
-    const dns = data.results.dns;
-    const subs = data.results.subdomains;
-    const wb = data.results.wayback;
+    const r = data.results;
+    const dns = r.dns;
+    const subs = r.subdomains;
+    const wb = r.wayback;
+    const techs = r.technologies;
+    const secHeaders = r.security_headers;
+    const whois = r.whois;
+
+    const arr = (v: any): any[] => (Array.isArray(v) ? v : []);
+    const len = (v: any): number => arr(v).length;
 
     let totalFindings = 0;
     if (dns?.status === "success") totalFindings++;
-    if (subs?.status === "success" && subs.data) totalFindings += subs.data.length;
-    if (wb?.status === "success" && wb.data) totalFindings += wb.data.length;
+    if (subs?.status === "success") totalFindings += len(subs.data);
+    if (wb?.status === "success") totalFindings += len(wb.data);
+    if (techs?.status === "success") totalFindings += len(techs.data);
+    if (secHeaders?.status === "success") totalFindings += len(secHeaders.data);
+    if (whois?.status === "success") totalFindings += Object.keys(whois.data || {}).length;
 
     return (
       <div>
@@ -195,7 +206,8 @@ export default function Home() {
           onNewScan={handleNewScan}
         />
         <div className="flex flex-col gap-4">
-          {/* Summary */}
+
+          {/* ── Summary ── */}
           <Card title="Summary" badge="ok">
             <KV pairs={[
               ["Target", data.domain],
@@ -206,15 +218,42 @@ export default function Home() {
             ]} />
           </Card>
 
-          {/* DNS */}
+          {/* ── DNS ── */}
           {dns && (
             <Card title="DNS Resolution" badge={dns.status === "success" ? "ok" : "fail"}>
-              {dns.status === "success" ? (
-                <KV pairs={[
-                  ["IP Address", dns.ip || "N/A"],
-                  ["Source", "Direct DNS Lookup"],
-                  ["Status", "Resolved"],
-                ]} />
+              {dns.ip ? (
+                <div>
+                  <KV pairs={[
+                    ["IP Address", dns.ip],
+                    ...(dns.all_ips && dns.all_ips.length > 1
+                      ? [["All IPs", dns.all_ips.join(", ")] as [string, string]]
+                      : []),
+                  ]} />
+                  {dns.mx && dns.mx.length > 0 && (
+                    <div className="mt-3">
+                      <div className="text-[0.7rem] text-neutral-500 uppercase tracking-wider mb-1.5">
+                        MX Records
+                      </div>
+                      <DataList items={dns.mx} />
+                    </div>
+                  )}
+                  {dns.ns && dns.ns.length > 0 && (
+                    <div className="mt-3">
+                      <div className="text-[0.7rem] text-neutral-500 uppercase tracking-wider mb-1.5">
+                        Nameservers
+                      </div>
+                      <DataList items={dns.ns} />
+                    </div>
+                  )}
+                  {dns.txt && dns.txt.length > 0 && (
+                    <div className="mt-3">
+                      <div className="text-[0.7rem] text-neutral-500 uppercase tracking-wider mb-1.5">
+                        TXT Records
+                      </div>
+                      <DataList items={dns.txt} />
+                    </div>
+                  )}
+                </div>
               ) : (
                 <div className="text-center py-5 text-neutral-600 text-sm">
                   {dns.error || "Resolution failed"}
@@ -223,75 +262,90 @@ export default function Home() {
             </Card>
           )}
 
-          {/* Subdomains */}
-          {subs && (
+          {/* ── Technologies ── */}
+          {techs && <TechCard techs={techs} />}
+
+          {/* ── Security Headers ── */}
+          {secHeaders && <SecHeadersCard sec={secHeaders} />}
+
+          {/* ── WHOIS ── */}
+          {whois && (
             <Card
-              title={
-                subs.status === "success" && subs.data?.length
-                  ? `Subdomains — ${subs.data.length} found`
-                  : "Subdomains"
-              }
-              badge={subs.status === "success" && subs.data?.length ? "ok" : "empty"}
+              title="WHOIS / RDAP"
+              badge={whois.status === "success" || whois.status === "partial" ? "ok" : "fail"}
             >
-              {subs.status === "success" && subs.data?.length ? (
-                <>
-                  <DataList items={subs.data} />
-                  <div className="text-[0.72rem] text-neutral-600 pt-2 text-right border-t border-neutral-900 mt-2">
-                    Source: {subs.source}
-                  </div>
-                </>
+              {(whois.status === "success" || whois.status === "partial") &&
+              whois.data &&
+              typeof whois.data === "object" &&
+              Object.keys(whois.data).length > 0 ? (
+                <KV
+                  pairs={Object.entries(whois.data).map(
+                    ([k, v]) => [k, String(v)] as [string, string]
+                  )}
+                />
               ) : (
                 <div className="text-center py-5 text-neutral-600 text-sm">
-                  No subdomains discovered via Certificate Transparency.
+                  {String(whois.error || "WHOIS data not available for this domain.")}
                 </div>
               )}
             </Card>
           )}
 
-          {/* Wayback */}
+          {/* ── Subdomains ── */}
+          {subs && (
+            <Card
+              title={
+                subs.status === "success" && len(subs.data)
+                  ? `Subdomains — ${len(subs.data)} found`
+                  : "Subdomains"
+              }
+              badge={subs.status === "success" && len(subs.data) ? "ok" : "empty"}
+            >
+              {subs.status === "success" && len(subs.data) ? (
+                <>
+                  <DataList items={arr(subs.data)} />
+                  <div className="text-[0.72rem] text-neutral-600 pt-2 text-right border-t border-neutral-900 mt-2">
+                    Source: {String(subs.source)} (Certificate Transparency)
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-5 text-neutral-600 text-sm">
+                  {String(subs.error || "No subdomains discovered.")}
+                </div>
+              )}
+            </Card>
+          )}
+
+          {/* ── Wayback ── */}
           {wb && (
             <Card
               title={
-                wb.status === "success" && wb.data?.length
-                  ? `Wayback Machine — ${wb.data.length} URLs`
+                wb.status === "success" && len(wb.data)
+                  ? `Wayback Machine — ${len(wb.data)} URLs`
                   : "Wayback Machine"
               }
-              badge={wb.status === "success" && wb.data?.length ? "ok" : "empty"}
+              badge={wb.status === "success" && len(wb.data) ? "ok" : "empty"}
             >
-              {wb.status === "success" && wb.data?.length ? (
+              {wb.status === "success" && len(wb.data) ? (
                 <>
-                  <DataList items={wb.data} />
+                  <DataList items={arr(wb.data)} />
                   <div className="text-[0.72rem] text-neutral-600 pt-2 text-right border-t border-neutral-900 mt-2">
                     Source: Wayback Machine CDX API
                   </div>
                 </>
               ) : (
                 <div className="text-center py-5 text-neutral-600 text-sm">
-                  No historical snapshots found.
+                  {String(wb.error || "No historical snapshots found.")}
                 </div>
               )}
             </Card>
           )}
-
-          {/* API key modules */}
-          {Object.entries(data.results)
-            .filter(([key]) => !["dns", "subdomains", "wayback"].includes(key))
-            .map(([key, val]) =>
-              val.simulated ? (
-                <Card key={key} title={capitalize(key)} badge="key">
-                  <div className="text-center py-5 text-neutral-600 text-sm">
-                    Requires API key. Configure {key.toUpperCase()}_API_KEY in
-                    environment to enable.
-                  </div>
-                </Card>
-              ) : null
-            )}
         </div>
       </div>
     );
   }
 
-  // --- INPUT PHASE ---
+  // ─── INPUT PHASE ───
   return (
     <div>
       <div className="text-center mb-10">
@@ -299,7 +353,7 @@ export default function Home() {
           Reconnaissance
         </h1>
         <p className="text-neutral-500 text-sm">
-          Passive intelligence collection from public data sources.
+          Passive intelligence collection from public data sources — no API keys required.
         </p>
       </div>
       <div className="border border-neutral-700 p-8 max-w-xl mx-auto">
@@ -325,7 +379,7 @@ export default function Home() {
             {MODULES.map((mod) => (
               <label
                 key={mod.id}
-                className="flex items-center gap-2 px-2.5 py-2 border border-neutral-800 text-xs cursor-pointer hover:border-neutral-500 transition-colors"
+                className="flex items-center gap-2 px-2.5 py-2.5 border border-neutral-800 text-xs cursor-pointer hover:border-neutral-500 transition-colors"
               >
                 <input
                   type="checkbox"
@@ -333,9 +387,16 @@ export default function Home() {
                   onChange={() => toggleModule(mod.id)}
                   className="accent-white w-3.5 h-3.5 cursor-pointer"
                 />
-                {mod.label}
+                <div>
+                  <div className="font-bold">{mod.label}</div>
+                  <div className="text-neutral-600 text-[0.65rem]">{mod.desc}</div>
+                </div>
               </label>
             ))}
+          </div>
+
+          <div className="text-[0.68rem] text-neutral-600 mb-4 text-center">
+            DNS Resolution + Wayback Machine are always included.
           </div>
 
           <button
@@ -350,7 +411,141 @@ export default function Home() {
   );
 }
 
-// --- Sub-components ---
+// ─── Module Cards ───
+
+function TechCard({ techs }: { techs: R }) {
+  const data: any[] = Array.isArray(techs.data) ? techs.data : [];
+  const ok = techs.status === "success" && data.length > 0;
+
+  // Group by category
+  const grouped: Record<string, { name: string; confidence: string }[]> = {};
+  if (ok) {
+    for (const t of data) {
+      const cat = t.category || "Other";
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push({ name: t.name, confidence: t.confidence });
+    }
+  }
+
+  return (
+    <Card
+      title={ok ? `Technologies — ${data.length} detected` : "Technologies"}
+      badge={ok ? "ok" : techs.status === "error" ? "fail" : "empty"}
+    >
+      {ok ? (
+        <div>
+          {Object.entries(grouped).map(([category, items]) => (
+            <div key={category} className="mb-3 last:mb-0">
+              <div className="text-[0.7rem] text-neutral-500 uppercase tracking-wider mb-1.5 border-b border-neutral-900 pb-1">
+                {category}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {items.map((t, i) => (
+                  <span
+                    key={i}
+                    className={`inline-block px-2.5 py-1 text-xs border ${
+                      t.confidence === "high"
+                        ? "border-white text-white"
+                        : "border-neutral-600 text-neutral-400"
+                    }`}
+                  >
+                    {t.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ))}
+          <div className="text-[0.72rem] text-neutral-600 pt-2 text-right border-t border-neutral-900 mt-3">
+            Source: {String(techs.source)} • {data.length} technologies
+          </div>
+        </div>
+      ) : (
+        <div className="text-center py-5 text-neutral-600 text-sm">
+          {String(techs.error || "No technologies detected.")}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function SecHeadersCard({ sec }: { sec: R }) {
+  const data: any[] = Array.isArray(sec.data) ? sec.data : [];
+  const ok = sec.status === "success" && data.length > 0;
+  const grade = String(sec.grade || "?");
+  const missing = data.filter((h) => h.status === "missing").length;
+
+  return (
+    <Card
+      title={ok ? `Security Headers — Grade ${grade} (${sec.score})` : "Security Headers"}
+      badge={ok ? (grade === "A" || grade === "B" ? "ok" : "fail") : "fail"}
+    >
+      {ok ? (
+        <div>
+          <div className="flex items-center gap-4 mb-4 pb-3 border-b border-neutral-800">
+            <div
+              className={`text-4xl font-bold ${
+                grade === "A"
+                  ? "text-white"
+                  : grade === "B"
+                  ? "text-neutral-300"
+                  : grade === "C"
+                  ? "text-neutral-400"
+                  : "text-neutral-600"
+              }`}
+            >
+              {grade}
+            </div>
+            <div className="text-xs text-neutral-500">
+              <div>{String(sec.score)} headers present</div>
+              <div className="mt-0.5">{missing} missing</div>
+            </div>
+          </div>
+          {data.map((h, i) => (
+            <div
+              key={i}
+              className="flex items-start justify-between py-2 border-b border-neutral-900 last:border-b-0 gap-3"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-bold flex items-center gap-2">
+                  <span
+                    className={
+                      h.status === "present" ? "text-white" : "text-neutral-600"
+                    }
+                  >
+                    {h.status === "present" ? "✓" : "✗"}
+                  </span>
+                  {h.header}
+                </div>
+                {h.status === "present" && h.value !== "Not set" && (
+                  <div className="text-[0.68rem] text-neutral-500 mt-0.5 break-all">
+                    {h.value}
+                  </div>
+                )}
+              </div>
+              <span
+                className={`text-[0.6rem] px-1.5 py-0.5 border shrink-0 uppercase tracking-wide ${
+                  h.severity === "high"
+                    ? "border-white text-white"
+                    : h.severity === "medium"
+                    ? "border-neutral-500 text-neutral-400"
+                    : "border-neutral-700 text-neutral-600"
+                }`}
+              >
+                {h.severity}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-5 text-neutral-600 text-sm">
+          {String(sec.error || "Could not analyze security headers.")}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ─── Sub-components ───
 
 function ResultsHeader({
   title,
@@ -390,9 +585,9 @@ function Card({
 }) {
   const badgeStyles = {
     ok: "border-white text-white",
-    fail: "text-neutral-500",
-    empty: "text-neutral-600",
-    key: "text-neutral-600",
+    fail: "border-neutral-500 text-neutral-500",
+    empty: "border-neutral-700 text-neutral-600",
+    key: "border-neutral-700 text-neutral-600",
   };
   const badgeLabels = {
     ok: "OK",
@@ -408,7 +603,7 @@ function Card({
           {title}
         </span>
         <span
-          className={`text-[0.65rem] px-2 py-0.5 border border-neutral-600 tracking-wide uppercase ${badgeStyles[badge]}`}
+          className={`text-[0.65rem] px-2 py-0.5 border tracking-wide uppercase ${badgeStyles[badge]}`}
         >
           {badgeLabels[badge]}
         </span>
@@ -424,10 +619,10 @@ function KV({ pairs }: { pairs: [string, string][] }) {
       {pairs.map(([k, v], i) => (
         <div
           key={i}
-          className="flex justify-between py-1.5 border-b border-neutral-900 last:border-b-0 text-sm"
+          className="flex justify-between py-1.5 border-b border-neutral-900 last:border-b-0 text-sm gap-4"
         >
-          <span className="text-neutral-500">{k}</span>
-          <span className="font-bold">{v}</span>
+          <span className="text-neutral-500 shrink-0">{k}</span>
+          <span className="font-bold text-right break-all">{v}</span>
         </div>
       ))}
     </div>
@@ -447,8 +642,4 @@ function DataList({ items }: { items: string[] }) {
       ))}
     </ul>
   );
-}
-
-function capitalize(s: string) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
 }
