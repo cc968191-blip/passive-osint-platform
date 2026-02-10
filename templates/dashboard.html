@@ -5,695 +5,440 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Passive OSINT Platform</title>
     <style>
-        :root {
-            --bg: #0a0e17;
-            --surface: #111827;
-            --surface-2: #1f2937;
-            --border: #374151;
-            --text: #e5e7eb;
-            --text-dim: #9ca3af;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --green: #10b981;
-            --red: #ef4444;
-            --amber: #f59e0b;
-            --cyan: #06b6d4;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg);
-            color: var(--text);
+            font-family: 'Courier New', 'Consolas', monospace;
+            background: #000;
+            color: #fff;
             min-height: 100vh;
         }
 
         /* --- NAV --- */
         nav {
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid #333;
             padding: 0 32px;
-            height: 56px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            font-size: .85rem;
         }
-        .nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            font-size: 1.05rem;
-            letter-spacing: .3px;
-        }
-        .nav-brand svg { color: var(--accent); }
-        .nav-meta {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            font-size: .82rem;
-            color: var(--text-dim);
-        }
-        .nav-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: var(--green);
-            display: inline-block;
-        }
+        .nav-brand { font-weight: bold; letter-spacing: 2px; text-transform: uppercase; }
+        .nav-right { display: flex; gap: 20px; color: #888; font-size: .8rem; }
+        .nav-right .dot { display:inline-block; width:6px; height:6px; background:#fff; border-radius:50%; margin-right:6px; }
 
         /* --- LAYOUT --- */
-        .wrapper {
-            max-width: 1280px;
-            margin: 0 auto;
-            padding: 32px 24px;
-        }
+        .wrap { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
 
         /* --- PHASE: INPUT --- */
-        #phase-input { }
-        .hero {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-        .hero h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        .hero p {
-            color: var(--text-dim);
-            font-size: .95rem;
-        }
-        .input-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
+        #phase-input {}
+        .hero { text-align:center; margin-bottom:40px; }
+        .hero h1 { font-size:1.6rem; font-weight:bold; letter-spacing:3px; text-transform:uppercase; margin-bottom:8px; }
+        .hero p { color:#888; font-size:.85rem; }
+        .input-box {
+            border: 1px solid #444;
             padding: 32px;
-            max-width: 640px;
+            max-width: 580px;
             margin: 0 auto;
         }
         .field-label {
-            display: block;
-            font-size: .8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: .6px;
-            color: var(--text-dim);
-            margin-bottom: 8px;
+            display:block; font-size:.75rem; text-transform:uppercase;
+            letter-spacing:1px; color:#888; margin-bottom:8px;
         }
         .domain-input {
-            width: 100%;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
-            padding: 14px 16px;
-            font-size: 1rem;
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
-            transition: border-color .2s;
+            width:100%; background:#000; border:1px solid #555; color:#fff;
+            padding:12px 14px; font-family:'Courier New',monospace; font-size:.95rem;
         }
-        .domain-input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
+        .domain-input:focus { outline:none; border-color:#fff; }
         .modules-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin: 20px 0 28px;
+            display:grid; grid-template-columns:1fr 1fr; gap:6px;
+            margin:20px 0 28px;
         }
         .mod-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 12px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            cursor: pointer;
-            transition: border-color .2s;
-            font-size: .88rem;
+            display:flex; align-items:center; gap:8px;
+            padding:8px 10px; border:1px solid #333; font-size:.82rem; cursor:pointer;
         }
-        .mod-item:hover { border-color: var(--accent); }
-        .mod-item input { accent-color: var(--accent); width: 16px; height: 16px; cursor: pointer; }
-        .mod-item label { cursor: pointer; flex: 1; }
-        .btn-primary {
-            width: 100%;
-            padding: 14px;
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-size: .95rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background .2s;
-            letter-spacing: .3px;
+        .mod-item:hover { border-color:#888; }
+        .mod-item input { accent-color:#fff; width:14px; height:14px; cursor:pointer; }
+        .mod-item label { cursor:pointer; flex:1; }
+        .btn {
+            width:100%; padding:14px; background:#fff; color:#000;
+            border:none; font-family:'Courier New',monospace; font-size:.85rem;
+            font-weight:bold; letter-spacing:1px; text-transform:uppercase; cursor:pointer;
         }
-        .btn-primary:hover { background: var(--accent-hover); }
-        .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+        .btn:hover { background:#ccc; }
+        .btn:disabled { opacity:.4; cursor:not-allowed; }
+        .btn-outline {
+            padding:10px 24px; background:#000; color:#fff;
+            border:1px solid #fff; font-family:'Courier New',monospace;
+            font-size:.8rem; letter-spacing:1px; text-transform:uppercase; cursor:pointer;
+        }
+        .btn-outline:hover { background:#fff; color:#000; }
 
         /* --- PHASE: SCANNING --- */
-        #phase-scan { display: none; text-align: center; padding: 80px 0; }
-        .scan-spinner {
-            width: 64px; height: 64px;
-            border: 3px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin .8s linear infinite;
-            margin: 0 auto 24px;
+        #phase-scan { display:none; text-align:center; padding:80px 0; }
+        .spinner {
+            width:48px; height:48px; border:2px solid #333; border-top-color:#fff;
+            border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 24px;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        #phase-scan h2 { font-size: 1.3rem; margin-bottom: 8px; }
-        #scan-domain-label { color: var(--accent); font-family: monospace; }
-        #scan-elapsed {
-            margin-top: 16px;
-            font-size: 2rem;
-            font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text-dim);
+        @keyframes spin { to { transform:rotate(360deg); } }
+        #phase-scan h2 { font-size:1.1rem; font-weight:normal; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
+        #scan-target { font-weight:bold; }
+        #scan-timer {
+            margin-top:20px; font-size:1.8rem; font-weight:bold; color:#888; letter-spacing:2px;
         }
-        .scan-steps {
-            margin-top: 24px;
-            display: inline-flex;
-            flex-direction: column;
-            gap: 6px;
-            text-align: left;
-            font-size: .85rem;
-            color: var(--text-dim);
-        }
-        .scan-step.done { color: var(--green); }
-        .scan-step.active { color: var(--text); }
+        .steps { margin-top:28px; display:inline-flex; flex-direction:column; gap:5px; text-align:left; font-size:.8rem; color:#555; }
+        .steps .done { color:#fff; }
+        .steps .active { color:#aaa; }
 
         /* --- PHASE: RESULTS --- */
-        #phase-results { display: none; }
-        .results-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 12px;
+        #phase-results { display:none; }
+        .res-header {
+            display:flex; align-items:center; justify-content:space-between;
+            border-bottom:1px solid #333; padding-bottom:16px; margin-bottom:24px;
         }
-        .results-header h2 { font-size: 1.3rem; }
-        .results-meta {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            font-size: .85rem;
-            color: var(--text-dim);
-        }
-        .results-meta span { display: flex; align-items: center; gap: 4px; }
-        .btn-outline {
-            padding: 10px 20px;
-            background: transparent;
-            color: var(--accent);
-            border: 1px solid var(--accent);
-            border-radius: 8px;
-            font-size: .85rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all .2s;
-        }
-        .btn-outline:hover { background: var(--accent); color: #fff; }
+        .res-header h2 { font-size:1rem; font-weight:bold; letter-spacing:2px; text-transform:uppercase; }
+        .res-meta { font-size:.78rem; color:#888; margin-top:4px; letter-spacing:.5px; }
+        .res-grid { display:flex; flex-direction:column; gap:16px; }
 
-        /* Result cards */
-        .results-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
+        /* Cards */
+        .card { border:1px solid #333; }
+        .card-head {
+            display:flex; align-items:center; justify-content:space-between;
+            padding:12px 16px; border-bottom:1px solid #333; background:#0a0a0a;
         }
-        .result-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
+        .card-head-title { font-size:.82rem; font-weight:bold; letter-spacing:1px; text-transform:uppercase; }
+        .badge {
+            font-size:.65rem; padding:2px 8px; border:1px solid #555;
+            letter-spacing:.5px; text-transform:uppercase;
         }
-        .result-card.full-width {
-            grid-column: 1 / -1;
-        }
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 18px;
-            border-bottom: 1px solid var(--border);
-            background: var(--surface-2);
-        }
-        .card-title {
-            font-weight: 600;
-            font-size: .9rem;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .card-badge {
-            font-size: .7rem;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: .5px;
-        }
-        .badge-success { background: rgba(16,185,129,.15); color: var(--green); }
-        .badge-warn { background: rgba(245,158,11,.15); color: var(--amber); }
-        .badge-error { background: rgba(239,68,68,.15); color: var(--red); }
-        .badge-info { background: rgba(6,182,212,.15); color: var(--cyan); }
-        .card-body { padding: 16px 18px; }
-        .card-body p { font-size: .85rem; color: var(--text-dim); margin-bottom: 12px; }
+        .badge-ok { border-color:#fff; color:#fff; }
+        .badge-empty { color:#555; }
+        .badge-fail { color:#888; }
+        .badge-key { color:#666; }
+        .card-body { padding:14px 16px; }
 
-        .data-list {
-            list-style: none;
-            max-height: 240px;
-            overflow-y: auto;
+        /* Data list */
+        .dlist { list-style:none; max-height:300px; overflow-y:auto; }
+        .dlist li {
+            padding:6px 0; border-bottom:1px solid #1a1a1a;
+            font-size:.8rem; word-break:break-all;
         }
-        .data-list li {
-            padding: 7px 10px;
-            font-size: .83rem;
-            font-family: 'JetBrains Mono', monospace;
-            border-bottom: 1px solid var(--border);
-            word-break: break-all;
-        }
-        .data-list li:last-child { border-bottom: none; }
-        .data-list li:hover { background: var(--surface-2); }
-        .data-count {
-            font-size: .78rem;
-            color: var(--text-dim);
-            padding: 8px 10px;
-            border-top: 1px solid var(--border);
-            text-align: right;
-        }
+        .dlist li:last-child { border-bottom:none; }
+        .dlist-footer { font-size:.72rem; color:#555; padding-top:8px; text-align:right; border-top:1px solid #222; margin-top:8px; }
 
-        .kv-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: .85rem;
-        }
-        .kv-row:last-child { border-bottom: none; }
-        .kv-key { color: var(--text-dim); }
-        .kv-val { font-family: monospace; font-weight: 600; }
+        /* Key-value */
+        .kv { display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid #1a1a1a; font-size:.82rem; }
+        .kv:last-child { border-bottom:none; }
+        .kv-k { color:#888; }
+        .kv-v { font-weight:bold; }
 
-        .no-data {
-            text-align: center;
-            padding: 24px;
-            color: var(--text-dim);
-            font-size: .85rem;
-        }
-        .no-data-icon { font-size: 1.5rem; margin-bottom: 8px; }
+        .no-data { text-align:center; padding:20px; color:#555; font-size:.82rem; }
 
         /* --- TOKEN MODAL --- */
-        .modal-overlay {
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,.7);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 100;
+        .overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,.85);
+            display:flex; align-items:center; justify-content:center; z-index:100;
         }
-        .modal-overlay.hidden { display: none; }
-        .modal {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 32px;
-            width: 420px;
-            max-width: 90vw;
-        }
-        .modal h3 { margin-bottom: 8px; font-size: 1.1rem; }
-        .modal p { font-size: .85rem; color: var(--text-dim); margin-bottom: 16px; }
+        .overlay.hidden { display:none; }
+        .modal { border:1px solid #444; padding:32px; width:400px; max-width:90vw; background:#000; }
+        .modal h3 { font-size:.95rem; letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+        .modal p { font-size:.8rem; color:#888; margin-bottom:16px; line-height:1.5; }
         .modal input {
-            width: 100%;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
-            padding: 12px;
-            font-family: monospace;
-            font-size: .9rem;
-            margin-bottom: 16px;
+            width:100%; background:#000; border:1px solid #555; color:#fff;
+            padding:10px; font-family:'Courier New',monospace; font-size:.85rem; margin-bottom:16px;
         }
-        .modal input:focus { outline: none; border-color: var(--accent); }
+        .modal input:focus { outline:none; border-color:#fff; }
 
         /* --- FOOTER --- */
         footer {
-            text-align: center;
-            padding: 32px 0 16px;
-            font-size: .78rem;
-            color: var(--text-dim);
-            border-top: 1px solid var(--border);
-            margin-top: 48px;
+            text-align:center; padding:32px 0 16px; font-size:.7rem;
+            color:#555; border-top:1px solid #222; margin-top:48px; letter-spacing:.5px;
         }
 
         /* --- SCROLLBAR --- */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar { width:4px; }
+        ::-webkit-scrollbar-track { background:#000; }
+        ::-webkit-scrollbar-thumb { background:#333; }
 
-        /* --- RESPONSIVE --- */
-        @media (max-width: 768px) {
-            .modules-grid { grid-template-columns: 1fr; }
-            .results-grid { grid-template-columns: 1fr; }
-            .results-header { flex-direction: column; align-items: flex-start; }
-            nav { padding: 0 16px; }
-            .wrapper { padding: 20px 16px; }
+        @media (max-width:640px) {
+            .modules-grid { grid-template-columns:1fr; }
+            nav { padding:0 16px; }
+            .wrap { padding:24px 16px; }
+            .res-header { flex-direction:column; align-items:flex-start; gap:12px; }
         }
     </style>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <!-- NAV -->
-    <nav>
-        <div class="nav-brand">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            Passive OSINT Platform
+<nav>
+    <div class="nav-brand">Passive OSINT Platform</div>
+    <div class="nav-right">
+        <span><span class="dot"></span>Online</span>
+        <span id="clock"></span>
+    </div>
+</nav>
+
+<div class="wrap">
+
+    <!-- PHASE 1: INPUT -->
+    <div id="phase-input">
+        <div class="hero">
+            <h1>Reconnaissance</h1>
+            <p>Passive intelligence collection from public data sources.</p>
         </div>
-        <div class="nav-meta">
-            <span><span class="nav-dot"></span>&nbsp; Online</span>
-            <span id="nav-time"></span>
-        </div>
-    </nav>
+        <div class="input-box">
+            <form id="recon-form">
+                <label class="field-label">Target Domain</label>
+                <input type="text" id="domain" class="domain-input" placeholder="example.com" required autocomplete="off" spellcheck="false">
 
-    <div class="wrapper">
-
-        <!-- PHASE 1: INPUT -->
-        <div id="phase-input">
-            <div class="hero">
-                <h1>Reconnaissance</h1>
-                <p>Enter a target domain to collect passive intelligence from public data sources.</p>
-            </div>
-            <div class="input-card">
-                <form id="recon-form">
-                    <label class="field-label">Target Domain</label>
-                    <input type="text" id="domain" class="domain-input" placeholder="example.com" required autocomplete="off" spellcheck="false">
-
-                    <label class="field-label" style="margin-top:20px;">Modules</label>
-                    <div class="modules-grid">
-                        <div class="mod-item">
-                            <input type="checkbox" id="m-sub" name="modules" value="subdomains" checked>
-                            <label for="m-sub">Subdomains</label>
-                        </div>
-                        <div class="mod-item">
-                            <input type="checkbox" id="m-port" name="modules" value="ports" checked>
-                            <label for="m-port">Ports</label>
-                        </div>
-                        <div class="mod-item">
-                            <input type="checkbox" id="m-tech" name="modules" value="technologies" checked>
-                            <label for="m-tech">Technologies</label>
-                        </div>
-                        <div class="mod-item">
-                            <input type="checkbox" id="m-vuln" name="modules" value="vulnerabilities" checked>
-                            <label for="m-vuln">Vulnerabilities</label>
-                        </div>
-                        <div class="mod-item">
-                            <input type="checkbox" id="m-cred" name="modules" value="credentials" checked>
-                            <label for="m-cred">Credentials</label>
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn-primary" id="submit-btn">Start Reconnaissance</button>
-                </form>
-            </div>
-        </div>
-
-        <!-- PHASE 2: SCANNING -->
-        <div id="phase-scan">
-            <div class="scan-spinner"></div>
-            <h2>Scanning <span id="scan-domain-label"></span></h2>
-            <p style="color:var(--text-dim);font-size:.9rem;">Collecting passive intelligence from public sources</p>
-            <div id="scan-elapsed">00:00</div>
-            <div class="scan-steps" id="scan-steps">
-                <div class="scan-step active">Validating domain...</div>
-                <div class="scan-step">Resolving DNS...</div>
-                <div class="scan-step">Querying Certificate Transparency...</div>
-                <div class="scan-step">Querying Wayback Machine...</div>
-                <div class="scan-step">Checking additional modules...</div>
-            </div>
-        </div>
-
-        <!-- PHASE 3: RESULTS -->
-        <div id="phase-results">
-            <div class="results-header">
-                <div>
-                    <h2 id="results-title">Results</h2>
-                    <div class="results-meta">
-                        <span id="results-domain"></span>
-                        <span id="results-time"></span>
-                        <span id="results-duration"></span>
-                    </div>
+                <label class="field-label" style="margin-top:20px;">Modules</label>
+                <div class="modules-grid">
+                    <div class="mod-item"><input type="checkbox" id="m-sub" name="modules" value="subdomains" checked><label for="m-sub">Subdomains</label></div>
+                    <div class="mod-item"><input type="checkbox" id="m-port" name="modules" value="ports" checked><label for="m-port">Ports</label></div>
+                    <div class="mod-item"><input type="checkbox" id="m-tech" name="modules" value="technologies" checked><label for="m-tech">Technologies</label></div>
+                    <div class="mod-item"><input type="checkbox" id="m-vuln" name="modules" value="vulnerabilities" checked><label for="m-vuln">Vulnerabilities</label></div>
+                    <div class="mod-item"><input type="checkbox" id="m-cred" name="modules" value="credentials" checked><label for="m-cred">Credentials</label></div>
                 </div>
-                <button class="btn-outline" id="btn-new-scan">New Scan</button>
+
+                <button type="submit" class="btn" id="submit-btn">Execute Reconnaissance</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- PHASE 2: SCANNING -->
+    <div id="phase-scan">
+        <div class="spinner"></div>
+        <h2>Scanning <span id="scan-target"></span></h2>
+        <p style="color:#666;font-size:.82rem;">Collecting intelligence from public sources</p>
+        <div id="scan-timer">00:00</div>
+        <div class="steps" id="steps">
+            <div class="active">Validating domain...</div>
+            <div>Resolving DNS...</div>
+            <div>Querying crt.sh (Certificate Transparency)...</div>
+            <div>Querying Wayback Machine...</div>
+            <div>Processing results...</div>
+        </div>
+    </div>
+
+    <!-- PHASE 3: RESULTS -->
+    <div id="phase-results">
+        <div class="res-header">
+            <div>
+                <h2 id="res-title">Results</h2>
+                <div class="res-meta" id="res-meta"></div>
             </div>
-            <div class="results-grid" id="results-grid"></div>
+            <button class="btn-outline" id="btn-new">New Scan</button>
         </div>
-
+        <div class="res-grid" id="res-grid"></div>
     </div>
 
-    <footer>
-        Passive OSINT Platform v1.0.0 &mdash; Authorized passive reconnaissance only &mdash; MIT License
-    </footer>
+</div>
 
-    <!-- TOKEN MODAL -->
-    <div class="modal-overlay hidden" id="token-modal">
-        <div class="modal">
-            <h3>Authentication Required</h3>
-            <p>Enter your API token to access the platform. This token authenticates all reconnaissance requests.</p>
-            <input type="text" id="token-input" placeholder="Paste your API token" spellcheck="false" autocomplete="off">
-            <button class="btn-primary" id="token-submit">Authenticate</button>
-        </div>
+<footer>Passive OSINT Platform v1.0.0 &mdash; Authorized passive reconnaissance only &mdash; MIT License</footer>
+
+<!-- TOKEN MODAL -->
+<div class="overlay hidden" id="token-overlay">
+    <div class="modal">
+        <h3>Authentication</h3>
+        <p>Enter your API token to authenticate. This token is required for all reconnaissance operations.</p>
+        <input type="text" id="token-input" placeholder="API Token" spellcheck="false" autocomplete="off">
+        <button class="btn" id="token-btn">Authenticate</button>
     </div>
+</div>
 
-    <script>
-        /* ---- State ---- */
-        let API_TOKEN = localStorage.getItem('api_token') || '';
-        let scanTimer = null;
-        let scanStart = 0;
+<script>
+    let TOKEN = localStorage.getItem('api_token') || '';
+    let _timer = null, _start = 0;
 
-        /* ---- Auth ---- */
-        function setApiToken(t) { API_TOKEN = t; localStorage.setItem('api_token', t); }
-        function headers() { return { 'Content-Type': 'application/json', 'X-API-Token': API_TOKEN }; }
+    function setToken(t) { TOKEN = t; localStorage.setItem('api_token', t); }
+    function hdrs() { return { 'Content-Type':'application/json', 'X-API-Token': TOKEN }; }
 
-        /* ---- Clock ---- */
-        function tickClock() {
-            document.getElementById('nav-time').textContent = new Date().toLocaleTimeString('en-GB');
-        }
-        setInterval(tickClock, 1000);
-        tickClock();
+    /* Clock */
+    function tick() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-GB'); }
+    setInterval(tick, 1000); tick();
 
-        /* ---- Elapsed timer ---- */
-        function startTimer() {
-            scanStart = Date.now();
-            const el = document.getElementById('scan-elapsed');
-            scanTimer = setInterval(() => {
-                const s = Math.floor((Date.now() - scanStart) / 1000);
-                const m = String(Math.floor(s / 60)).padStart(2, '0');
-                const sec = String(s % 60).padStart(2, '0');
-                el.textContent = m + ':' + sec;
-            }, 200);
-        }
-        function stopTimer() {
-            clearInterval(scanTimer);
-            return ((Date.now() - scanStart) / 1000).toFixed(1);
-        }
+    /* Timer */
+    function timerStart() {
+        _start = Date.now();
+        const el = document.getElementById('scan-timer');
+        _timer = setInterval(() => {
+            const s = Math.floor((Date.now()-_start)/1000);
+            el.textContent = String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+        }, 250);
+    }
+    function timerStop() { clearInterval(_timer); return ((Date.now()-_start)/1000).toFixed(1); }
 
-        /* ---- Phase switching ---- */
-        function showPhase(name) {
-            document.getElementById('phase-input').style.display = name === 'input' ? '' : 'none';
-            document.getElementById('phase-scan').style.display = name === 'scan' ? '' : 'none';
-            document.getElementById('phase-results').style.display = name === 'results' ? '' : 'none';
-        }
+    /* Phases */
+    function show(p) {
+        document.getElementById('phase-input').style.display = p==='input' ? '' : 'none';
+        document.getElementById('phase-scan').style.display = p==='scan' ? '' : 'none';
+        document.getElementById('phase-results').style.display = p==='results' ? '' : 'none';
+    }
 
-        /* ---- Scan step progress ---- */
-        function advanceStep(idx) {
-            const steps = document.querySelectorAll('#scan-steps .scan-step');
-            steps.forEach((s, i) => {
-                s.className = 'scan-step' + (i < idx ? ' done' : i === idx ? ' active' : '');
-                if (i < idx) s.textContent = '\u2713 ' + s.textContent.replace(/^\u2713\s*/, '');
-            });
-        }
-
-        /* ---- Init ---- */
-        document.addEventListener('DOMContentLoaded', () => {
-            if (!API_TOKEN) {
-                document.getElementById('token-modal').classList.remove('hidden');
-            }
+    /* Steps */
+    const stepTexts = ['Validating domain...','Resolving DNS...','Querying crt.sh (Certificate Transparency)...','Querying Wayback Machine...','Processing results...'];
+    function stepTo(idx) {
+        document.querySelectorAll('#steps > div').forEach((el,i) => {
+            el.className = i < idx ? 'done' : i === idx ? 'active' : '';
+            el.textContent = (i < idx ? '\u2713 ' : '') + stepTexts[i];
         });
+    }
 
-        document.getElementById('token-submit').addEventListener('click', () => {
-            const v = document.getElementById('token-input').value.trim();
-            if (v) {
-                setApiToken(v);
-                document.getElementById('token-modal').classList.add('hidden');
-            }
-        });
+    /* Init */
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!TOKEN) document.getElementById('token-overlay').classList.remove('hidden');
+    });
+    document.getElementById('token-btn').addEventListener('click', () => {
+        const v = document.getElementById('token-input').value.trim();
+        if (v) { setToken(v); document.getElementById('token-overlay').classList.add('hidden'); }
+    });
+    document.getElementById('token-input').addEventListener('keydown', e => {
+        if (e.key === 'Enter') document.getElementById('token-btn').click();
+    });
+    document.getElementById('btn-new').addEventListener('click', () => {
+        document.getElementById('domain').value = '';
+        show('input');
+    });
 
-        document.getElementById('token-input').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') document.getElementById('token-submit').click();
-        });
+    /* Submit */
+    document.getElementById('recon-form').addEventListener('submit', async e => {
+        e.preventDefault();
+        const domain = document.getElementById('domain').value.trim();
+        const mods = Array.from(document.querySelectorAll('input[name="modules"]:checked')).map(el => el.value);
+        if (!domain || !mods.length) return;
 
-        /* ---- New Scan ---- */
-        document.getElementById('btn-new-scan').addEventListener('click', () => {
-            document.getElementById('domain').value = '';
-            showPhase('input');
-        });
+        /* Reset steps */
+        document.querySelectorAll('#steps > div').forEach((el,i) => { el.textContent = stepTexts[i]; el.className = ''; });
+        document.getElementById('scan-target').textContent = domain;
+        show('scan');
+        timerStart();
+        stepTo(0);
 
-        /* ---- Form submit ---- */
-        document.getElementById('recon-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const domain = document.getElementById('domain').value.trim();
-            const modules = Array.from(document.querySelectorAll('input[name="modules"]:checked')).map(el => el.value);
-            if (!domain || modules.length === 0) return;
+        try {
+            /* Validate */
+            let r = await fetch('/api/validate-domain', { method:'POST', headers:hdrs(), body:JSON.stringify({domain}) });
+            if (!r.ok) { const e = await r.json(); throw new Error(e.message||e.error||'Validation failed'); }
+            const val = await r.json();
+            stepTo(1);
 
-            /* Reset scan steps text */
-            const stepEls = document.querySelectorAll('#scan-steps .scan-step');
-            const stepTexts = ['Validating domain...','Resolving DNS...','Querying Certificate Transparency...','Querying Wayback Machine...','Checking additional modules...'];
-            stepEls.forEach((s,i) => { s.textContent = stepTexts[i]; s.className = 'scan-step'; });
+            /* Recon */
+            stepTo(2);
+            r = await fetch('/api/reconnaissance', { method:'POST', headers:hdrs(), body:JSON.stringify({domain:val.domain, modules:mods}) });
+            if (!r.ok) { const e = await r.json(); throw new Error(e.error||'Reconnaissance failed'); }
+            stepTo(4);
+            const data = await r.json();
+            const elapsed = timerStop();
+            render(data, elapsed);
+            show('results');
+        } catch(err) {
+            const elapsed = timerStop();
+            show('results');
+            document.getElementById('res-title').textContent = 'ERROR';
+            document.getElementById('res-meta').textContent = domain;
+            document.getElementById('res-grid').innerHTML =
+                '<div class="card"><div class="card-head"><span class="card-head-title">Error</span><span class="badge badge-fail">FAILED</span></div><div class="card-body"><p style="color:#888;font-size:.82rem;">' + esc(err.message) + '</p></div></div>';
+        }
+    });
 
-            document.getElementById('scan-domain-label').textContent = domain;
-            showPhase('scan');
-            startTimer();
-            advanceStep(0);
+    /* Render */
+    function render(data, elapsed) {
+        document.getElementById('res-title').textContent = 'RECONNAISSANCE COMPLETE';
+        document.getElementById('res-meta').textContent = data.domain + '  \u2022  ' + new Date(data.timestamp).toLocaleString('en-GB') + '  \u2022  ' + elapsed + 's';
+        const g = document.getElementById('res-grid');
+        g.innerHTML = '';
 
-            try {
-                /* Validate */
-                let res = await fetch('/api/validate-domain', {
-                    method: 'POST', headers: headers(),
-                    body: JSON.stringify({ domain })
-                });
-                if (!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.message || err.error || 'Validation failed');
-                }
-                const val = await res.json();
-                advanceStep(1);
+        /* Summary card */
+        let totalFindings = 0;
+        const dns = data.results.dns;
+        const subs = data.results.subdomains;
+        const wb = data.results.wayback;
+        if (dns && dns.status === 'success') totalFindings++;
+        if (subs && subs.status === 'success' && subs.data) totalFindings += subs.data.length;
+        if (wb && wb.status === 'success' && wb.data) totalFindings += wb.data.length;
 
-                /* Recon */
-                advanceStep(2);
-                res = await fetch('/api/reconnaissance', {
-                    method: 'POST', headers: headers(),
-                    body: JSON.stringify({ domain: val.domain, modules })
-                });
-                if (!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.error || 'Reconnaissance failed');
-                }
-                advanceStep(4);
-                const data = await res.json();
-                const elapsed = stopTimer();
+        g.appendChild(mkCard('Summary', 'ok',
+            kvBlock([
+                ['Target', data.domain],
+                ['Status', data.status],
+                ['Duration', elapsed + ' seconds'],
+                ['Total Findings', String(totalFindings)],
+                ['Modules Executed', data.modules_run.join(', ')]
+            ])
+        ));
 
-                renderResults(data, elapsed);
-                showPhase('results');
+        /* DNS */
+        if (dns) {
+            g.appendChild(mkCard('DNS Resolution', dns.status === 'success' ? 'ok' : 'fail',
+                dns.status === 'success'
+                    ? kvBlock([['IP Address', dns.ip], ['Source', 'Direct DNS Lookup'], ['Status', 'Resolved']])
+                    : '<div class="no-data">' + esc(dns.error || 'Resolution failed') + '</div>'
+            ));
+        }
 
-            } catch (err) {
-                stopTimer();
-                showPhase('results');
-                document.getElementById('results-title').textContent = 'Error';
-                document.getElementById('results-domain').textContent = domain;
-                document.getElementById('results-time').textContent = '';
-                document.getElementById('results-duration').textContent = '';
-                document.getElementById('results-grid').innerHTML =
-                    '<div class="result-card full-width"><div class="card-header"><span class="card-title">Error</span><span class="card-badge badge-error">FAILED</span></div><div class="card-body"><p>' + escHtml(err.message) + '</p></div></div>';
-            }
-        });
-
-        /* ---- Render results ---- */
-        function renderResults(data, elapsed) {
-            document.getElementById('results-title').textContent = 'Reconnaissance Results';
-            document.getElementById('results-domain').textContent = data.domain;
-            document.getElementById('results-time').textContent = new Date(data.timestamp).toLocaleString('en-GB');
-            document.getElementById('results-duration').textContent = elapsed + 's';
-
-            const grid = document.getElementById('results-grid');
-            grid.innerHTML = '';
-
-            /* DNS */
-            if (data.results.dns) {
-                const d = data.results.dns;
-                grid.appendChild(makeCard('DNS Resolution', d.status === 'success' ? 'success' : 'error',
-                    d.status === 'success'
-                        ? kvHtml([['IP Address', d.ip], ['Source', 'Direct DNS'], ['Status', 'Resolved']])
-                        : '<p>' + escHtml(d.error || 'Resolution failed') + '</p>'
+        /* Subdomains */
+        if (subs) {
+            if (subs.status === 'success' && subs.data && subs.data.length > 0) {
+                g.appendChild(mkCard('Subdomains \u2014 ' + subs.data.length + ' found', 'ok',
+                    listBlock(subs.data) + '<div class="dlist-footer">Source: ' + esc(subs.source) + '</div>'
+                ));
+            } else {
+                g.appendChild(mkCard('Subdomains', 'empty',
+                    '<div class="no-data">No subdomains discovered via Certificate Transparency.</div>'
                 ));
             }
+        }
 
-            /* Subdomains */
-            if (data.results.subdomains) {
-                const s = data.results.subdomains;
-                if (s.status === 'success' && s.data && s.data.length > 0) {
-                    grid.appendChild(makeCard(
-                        'Subdomains (' + s.data.length + ')', 'success',
-                        listHtml(s.data) + '<div class="data-count">Source: ' + escHtml(s.source) + '</div>',
-                        true
-                    ));
-                } else if (!s.simulated) {
-                    grid.appendChild(makeCard('Subdomains', 'warn',
-                        '<div class="no-data"><div class="no-data-icon">&#8709;</div>No subdomains discovered</div>'
-                    ));
-                }
-            }
-
-            /* Wayback */
-            if (data.results.wayback) {
-                const w = data.results.wayback;
-                if (w.status === 'success' && w.data && w.data.length > 0) {
-                    grid.appendChild(makeCard(
-                        'Wayback Machine (' + w.data.length + ')', 'success',
-                        listHtml(w.data) + '<div class="data-count">Source: Wayback Machine CDX API</div>',
-                        true
-                    ));
-                } else if (!w.simulated) {
-                    grid.appendChild(makeCard('Wayback Machine', 'warn',
-                        '<div class="no-data"><div class="no-data-icon">&#8709;</div>No historical data found</div>'
-                    ));
-                }
-            }
-
-            /* Modules requiring API keys */
-            for (const [key, val] of Object.entries(data.results)) {
-                if (['dns', 'subdomains', 'wayback'].includes(key)) continue;
-                if (val.simulated) {
-                    grid.appendChild(makeCard(
-                        capitalize(key), 'info',
-                        '<div class="no-data"><div class="no-data-icon">&#128273;</div>Requires API key configuration<br><span style="font-size:.78rem;color:var(--text-dim);">Configure the corresponding API key in .env to enable this module.</span></div>'
-                    ));
-                } else if (val.status === 'success' && val.data) {
-                    grid.appendChild(makeCard(capitalize(key), 'success', listHtml(val.data)));
-                }
+        /* Wayback */
+        if (wb) {
+            if (wb.status === 'success' && wb.data && wb.data.length > 0) {
+                g.appendChild(mkCard('Wayback Machine \u2014 ' + wb.data.length + ' URLs', 'ok',
+                    listBlock(wb.data) + '<div class="dlist-footer">Source: Wayback Machine CDX API</div>'
+                ));
+            } else {
+                g.appendChild(mkCard('Wayback Machine', 'empty',
+                    '<div class="no-data">No historical snapshots found.</div>'
+                ));
             }
         }
 
-        /* ---- Helpers ---- */
-        function escHtml(s) {
-            const d = document.createElement('div');
-            d.textContent = s;
-            return d.innerHTML;
+        /* Modules requiring API keys */
+        for (const [key, val] of Object.entries(data.results)) {
+            if (['dns','subdomains','wayback'].includes(key)) continue;
+            if (val.simulated) {
+                g.appendChild(mkCard(capitalize(key), 'key',
+                    '<div class="no-data">Requires API key. Configure ' + esc(key.toUpperCase()) + '_API_KEY in environment to enable.</div>'
+                ));
+            } else if (val.status === 'success' && val.data) {
+                g.appendChild(mkCard(capitalize(key), 'ok', listBlock(val.data)));
+            }
         }
-        function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+    }
 
-        function makeCard(title, badge, bodyHtml, fullWidth) {
-            const card = document.createElement('div');
-            card.className = 'result-card' + (fullWidth ? ' full-width' : '');
-            const badgeClass = badge === 'success' ? 'badge-success' : badge === 'error' ? 'badge-error' : badge === 'warn' ? 'badge-warn' : 'badge-info';
-            const badgeLabel = badge === 'success' ? 'OK' : badge === 'error' ? 'FAIL' : badge === 'warn' ? 'EMPTY' : 'KEY REQUIRED';
-            card.innerHTML =
-                '<div class="card-header"><span class="card-title">' + escHtml(title) + '</span><span class="card-badge ' + badgeClass + '">' + badgeLabel + '</span></div>' +
-                '<div class="card-body">' + bodyHtml + '</div>';
-            return card;
-        }
+    /* Helpers */
+    function esc(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+    function capitalize(s) { return s.charAt(0).toUpperCase()+s.slice(1); }
 
-        function listHtml(items) {
-            let h = '<ul class="data-list">';
-            items.forEach(item => { h += '<li>' + escHtml(String(item)) + '</li>'; });
-            h += '</ul>';
-            return h;
-        }
+    function mkCard(title, type, body) {
+        const c = document.createElement('div');
+        c.className = 'card';
+        const bclass = type==='ok'?'badge-ok':type==='fail'?'badge-fail':type==='empty'?'badge-empty':'badge-key';
+        const blabel = type==='ok'?'OK':type==='fail'?'FAIL':type==='empty'?'NO DATA':'API KEY';
+        c.innerHTML = '<div class="card-head"><span class="card-head-title">'+esc(title)+'</span><span class="badge '+bclass+'">'+blabel+'</span></div><div class="card-body">'+body+'</div>';
+        return c;
+    }
 
-        function kvHtml(pairs) {
-            let h = '';
-            pairs.forEach(([k, v]) => {
-                h += '<div class="kv-row"><span class="kv-key">' + escHtml(k) + '</span><span class="kv-val">' + escHtml(String(v)) + '</span></div>';
-            });
-            return h;
-        }
-    </script>
+    function listBlock(items) {
+        let h = '<ul class="dlist">';
+        items.forEach(item => { h += '<li>'+esc(String(item))+'</li>'; });
+        return h + '</ul>';
+    }
+
+    function kvBlock(pairs) {
+        let h = '';
+        pairs.forEach(([k,v]) => { h += '<div class="kv"><span class="kv-k">'+esc(k)+'</span><span class="kv-v">'+esc(v)+'</span></div>'; });
+        return h;
+    }
+</script>
 </body>
 </html>

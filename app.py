@@ -52,7 +52,7 @@ def set_security_headers(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'
-    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com"
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     return response
@@ -107,19 +107,16 @@ async def query_crtsh(domain):
 async def query_wayback(domain):
     """Query Wayback Machine for historical data"""
     try:
-        url = f"https://web.archive.org/cdx/search/cdx?url={domain}&output=json&fl=timestamp,original&filter=statuscode:200&collapse=original"
-        timeout = aiohttp.ClientTimeout(total=15)
+        url = f"https://web.archive.org/cdx/search/cdx?url=*.{domain}&output=text&fl=original&collapse=urlkey&limit=50"
+        timeout = aiohttp.ClientTimeout(total=20)
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.get(url, ssl=True) as resp:
                 if resp.status == 200:
-                    data = await resp.json()
-                    if len(data) > 1:
-                        results = data[1:]
-                        unique_urls = set()
-                        for entry in results:
-                            if len(entry) >= 2:
-                                unique_urls.add(entry[1])
-                        return {'source': 'wayback', 'status': 'success', 'data': list(unique_urls)[:20]}
+                    text = await resp.text()
+                    lines = [l.strip() for l in text.strip().split('\n') if l.strip()]
+                    unique_urls = list(dict.fromkeys(lines))[:30]
+                    if unique_urls:
+                        return {'source': 'wayback', 'status': 'success', 'data': unique_urls}
                     else:
                         return {'source': 'wayback', 'status': 'no_data', 'data': []}
                 else:
@@ -212,15 +209,14 @@ def start_reconnaissance():
         dns_result = query_dns(validated_domain)
         results['results']['dns'] = dns_result
         
-        # Subdomain enumeration
+        # Subdomain enumeration via crt.sh
         if 'subdomains' in modules:
             ct_result = run_async(query_crtsh(validated_domain))
             results['results']['subdomains'] = ct_result
         
-        # Wayback Machine
-        if 'technologies' in modules:
-            wb_result = run_async(query_wayback(validated_domain))
-            results['results']['wayback'] = wb_result
+        # Wayback Machine (historical URLs)
+        wb_result = run_async(query_wayback(validated_domain))
+        results['results']['wayback'] = wb_result
         
         # Module stubs — clearly flagged as NOT real data
         for module_name in modules:
