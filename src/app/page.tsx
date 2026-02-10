@@ -14,21 +14,21 @@ type ReconResponse = {
 };
 
 const MODULES = [
-  { id: "subdomains", label: "Subdomains", desc: "Certificate Transparency" },
-  { id: "technologies", label: "Technologies", desc: "HTTP Fingerprinting" },
-  { id: "security_headers", label: "Security Headers", desc: "Header Analysis" },
-  { id: "whois", label: "WHOIS / RDAP", desc: "Domain Registration" },
+  { id: "subdomains", label: "Sous-domaines", desc: "Transparence des certificats" },
+  { id: "technologies", label: "Technologies", desc: "Empreinte HTTP" },
+  { id: "security_headers", label: "En-têtes de sécurité", desc: "Analyse des en-têtes" },
+  { id: "whois", label: "WHOIS / RDAP", desc: "Enregistrement du domaine" },
 ];
 
 const STEPS = [
-  "Validating domain...",
-  "Resolving DNS (A, MX, NS, TXT)...",
-  "Querying Certificate Transparency...",
-  "Fingerprinting technologies...",
-  "Analyzing security headers...",
-  "Querying WHOIS / RDAP...",
-  "Querying Wayback Machine...",
-  "Processing results...",
+  "Validation du domaine...",
+  "Résolution DNS (A, MX, NS, TXT)...",
+  "Interrogation Certificate Transparency...",
+  "Empreinte des technologies...",
+  "Analyse des en-têtes de sécurité...",
+  "Interrogation WHOIS / RDAP...",
+  "Interrogation Wayback Machine...",
+  "Traitement des résultats...",
 ];
 
 export default function Home() {
@@ -136,10 +136,10 @@ export default function Home() {
       <div className="text-center py-20">
         <div className="w-12 h-12 border-2 border-neutral-700 border-t-white rounded-full animate-spin mx-auto mb-6" />
         <h2 className="text-sm tracking-widest uppercase mb-1">
-          Scanning <span className="font-bold">{domain}</span>
+          Analyse de <span className="font-bold">{domain}</span>
         </h2>
         <p className="text-neutral-600 text-xs">
-          Running {selectedModules.length + 2} modules in parallel
+          Exécution de {selectedModules.length + 2} modules en parallèle
         </p>
         <div className="mt-5 text-3xl font-bold text-neutral-500 tracking-widest">
           {elapsed}
@@ -169,8 +169,8 @@ export default function Home() {
     if (error) {
       return (
         <div>
-          <ResultsHeader title="ERROR" meta={domain} onNewScan={handleNewScan} />
-          <Card title="Error" badge="fail">
+          <ResultsHeader title="ERREUR" meta={domain} onNewScan={handleNewScan} />
+          <Card title="Erreur" badge="fail">
             <p className="text-neutral-500 text-sm">{error}</p>
           </Card>
         </div>
@@ -201,38 +201,38 @@ export default function Home() {
     return (
       <div>
         <ResultsHeader
-          title="RECONNAISSANCE COMPLETE"
-          meta={`${data.domain}  •  ${new Date(data.timestamp).toLocaleString("en-GB")}  •  ${finalElapsed}s`}
+          title="RECONNAISSANCE TERMINÉE"
+          meta={`${data.domain}  •  ${new Date(data.timestamp).toLocaleString("fr-FR")}  •  ${finalElapsed}s`}
           onNewScan={handleNewScan}
         />
         <div className="flex flex-col gap-4">
 
           {/* ── Summary ── */}
-          <Card title="Summary" badge="ok">
+          <Card title="Résumé" badge="ok">
             <KV pairs={[
-              ["Target", data.domain],
-              ["Status", data.status],
-              ["Duration", `${finalElapsed} seconds`],
-              ["Total Findings", String(totalFindings)],
-              ["Modules Executed", data.modules_run.join(", ")],
+              ["Cible", data.domain],
+              ["Statut", data.status],
+              ["Durée", `${finalElapsed} secondes`],
+              ["Résultats trouvés", String(totalFindings)],
+              ["Modules exécutés", data.modules_run.join(", ")],
             ]} />
           </Card>
 
           {/* ── DNS ── */}
           {dns && (
-            <Card title="DNS Resolution" badge={dns.status === "success" ? "ok" : "fail"}>
+            <Card title="Résolution DNS" badge={dns.status === "success" ? "ok" : "fail"}>
               {dns.ip ? (
                 <div>
                   <KV pairs={[
-                    ["IP Address", dns.ip],
+                    ["Adresse IP", dns.ip],
                     ...(dns.all_ips && dns.all_ips.length > 1
-                      ? [["All IPs", dns.all_ips.join(", ")] as [string, string]]
+                      ? [["Toutes les IPs", dns.all_ips.join(", ")] as [string, string]]
                       : []),
                   ]} />
                   {dns.mx && dns.mx.length > 0 && (
                     <div className="mt-3">
                       <div className="text-[0.7rem] text-neutral-500 uppercase tracking-wider mb-1.5">
-                        MX Records
+                        Enregistrements MX
                       </div>
                       <DataList items={dns.mx} />
                     </div>
@@ -240,7 +240,7 @@ export default function Home() {
                   {dns.ns && dns.ns.length > 0 && (
                     <div className="mt-3">
                       <div className="text-[0.7rem] text-neutral-500 uppercase tracking-wider mb-1.5">
-                        Nameservers
+                        Serveurs de noms
                       </div>
                       <DataList items={dns.ns} />
                     </div>
@@ -248,7 +248,7 @@ export default function Home() {
                   {dns.txt && dns.txt.length > 0 && (
                     <div className="mt-3">
                       <div className="text-[0.7rem] text-neutral-500 uppercase tracking-wider mb-1.5">
-                        TXT Records
+                        Enregistrements TXT
                       </div>
                       <DataList items={dns.txt} />
                     </div>
@@ -256,7 +256,7 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="text-center py-5 text-neutral-600 text-sm">
-                  {dns.error || "Resolution failed"}
+                  {dns.error || "Échec de la résolution"}
                 </div>
               )}
             </Card>
@@ -285,7 +285,7 @@ export default function Home() {
                 />
               ) : (
                 <div className="text-center py-5 text-neutral-600 text-sm">
-                  {String(whois.error || "WHOIS data not available for this domain.")}
+                  {String(whois.error || "Données WHOIS non disponibles pour ce domaine.")}
                 </div>
               )}
             </Card>
@@ -296,8 +296,8 @@ export default function Home() {
             <Card
               title={
                 subs.status === "success" && len(subs.data)
-                  ? `Subdomains — ${len(subs.data)} found`
-                  : "Subdomains"
+                  ? `Sous-domaines — ${len(subs.data)} trouvés`
+                  : "Sous-domaines"
               }
               badge={subs.status === "success" && len(subs.data) ? "ok" : "empty"}
             >
@@ -305,12 +305,12 @@ export default function Home() {
                 <>
                   <DataList items={arr(subs.data)} />
                   <div className="text-[0.72rem] text-neutral-600 pt-2 text-right border-t border-neutral-900 mt-2">
-                    Source: {String(subs.source)} (Certificate Transparency)
+                    Source : {String(subs.source)} (Transparence des certificats)
                   </div>
                 </>
               ) : (
                 <div className="text-center py-5 text-neutral-600 text-sm">
-                  {String(subs.error || "No subdomains discovered.")}
+                  {String(subs.error || "Aucun sous-domaine découvert.")}
                 </div>
               )}
             </Card>
@@ -321,7 +321,7 @@ export default function Home() {
             <Card
               title={
                 wb.status === "success" && len(wb.data)
-                  ? `Wayback Machine — ${len(wb.data)} URLs`
+                  ? `Wayback Machine — ${len(wb.data)} URLs trouvées`
                   : "Wayback Machine"
               }
               badge={wb.status === "success" && len(wb.data) ? "ok" : "empty"}
@@ -330,12 +330,12 @@ export default function Home() {
                 <>
                   <DataList items={arr(wb.data)} />
                   <div className="text-[0.72rem] text-neutral-600 pt-2 text-right border-t border-neutral-900 mt-2">
-                    Source: Wayback Machine CDX API
+                    Source : Wayback Machine CDX API
                   </div>
                 </>
               ) : (
                 <div className="text-center py-5 text-neutral-600 text-sm">
-                  {String(wb.error || "No historical snapshots found.")}
+                  {String(wb.error || "Aucun historique trouvé.")}
                 </div>
               )}
             </Card>
@@ -353,13 +353,13 @@ export default function Home() {
           Reconnaissance
         </h1>
         <p className="text-neutral-500 text-sm">
-          Passive intelligence collection from public data sources — no API keys required.
+          Collecte passive de renseignements depuis des sources publiques — aucune clé API requise.
         </p>
       </div>
       <div className="border border-neutral-700 p-8 max-w-xl mx-auto">
         <form onSubmit={handleSubmit}>
           <label className="block text-[0.75rem] uppercase tracking-wider text-neutral-500 mb-2">
-            Target Domain
+            Domaine cible
           </label>
           <input
             type="text"
@@ -396,14 +396,14 @@ export default function Home() {
           </div>
 
           <div className="text-[0.68rem] text-neutral-600 mb-4 text-center">
-            DNS Resolution + Wayback Machine are always included.
+            Résolution DNS + Wayback Machine sont toujours inclus.
           </div>
 
           <button
             type="submit"
             className="w-full py-3.5 bg-white text-black font-bold text-xs tracking-wider uppercase hover:bg-neutral-300 transition-colors"
           >
-            Execute Reconnaissance
+            Lancer la reconnaissance
           </button>
         </form>
       </div>
@@ -429,7 +429,7 @@ function TechCard({ techs }: { techs: R }) {
 
   return (
     <Card
-      title={ok ? `Technologies — ${data.length} detected` : "Technologies"}
+      title={ok ? `Technologies — ${data.length} détectées` : "Technologies"}
       badge={ok ? "ok" : techs.status === "error" ? "fail" : "empty"}
     >
       {ok ? (
@@ -456,12 +456,12 @@ function TechCard({ techs }: { techs: R }) {
             </div>
           ))}
           <div className="text-[0.72rem] text-neutral-600 pt-2 text-right border-t border-neutral-900 mt-3">
-            Source: {String(techs.source)} • {data.length} technologies
+            Source : {String(techs.source)} • {data.length} technologies
           </div>
         </div>
       ) : (
         <div className="text-center py-5 text-neutral-600 text-sm">
-          {String(techs.error || "No technologies detected.")}
+          {String(techs.error || "Aucune technologie détectée.")}
         </div>
       )}
     </Card>
@@ -476,7 +476,7 @@ function SecHeadersCard({ sec }: { sec: R }) {
 
   return (
     <Card
-      title={ok ? `Security Headers — Grade ${grade} (${sec.score})` : "Security Headers"}
+      title={ok ? `En-têtes de sécurité — Note ${grade} (${sec.score})` : "En-têtes de sécurité"}
       badge={ok ? (grade === "A" || grade === "B" ? "ok" : "fail") : "fail"}
     >
       {ok ? (
@@ -496,8 +496,8 @@ function SecHeadersCard({ sec }: { sec: R }) {
               {grade}
             </div>
             <div className="text-xs text-neutral-500">
-              <div>{String(sec.score)} headers present</div>
-              <div className="mt-0.5">{missing} missing</div>
+              <div>{String(sec.score)} en-têtes présents</div>
+              <div className="mt-0.5">{missing} manquants</div>
             </div>
           </div>
           {data.map((h, i) => (
@@ -538,7 +538,7 @@ function SecHeadersCard({ sec }: { sec: R }) {
         </div>
       ) : (
         <div className="text-center py-5 text-neutral-600 text-sm">
-          {String(sec.error || "Could not analyze security headers.")}
+          {String(sec.error || "Impossible d'analyser les en-têtes de sécurité.")}
         </div>
       )}
     </Card>
@@ -568,7 +568,7 @@ function ResultsHeader({
         onClick={onNewScan}
         className="px-6 py-2.5 bg-black text-white border border-white font-mono text-xs tracking-wider uppercase cursor-pointer hover:bg-white hover:text-black transition-colors"
       >
-        New Scan
+        Nouvelle analyse
       </button>
     </div>
   );
@@ -591,9 +591,9 @@ function Card({
   };
   const badgeLabels = {
     ok: "OK",
-    fail: "FAIL",
-    empty: "NO DATA",
-    key: "API KEY",
+    fail: "ÉCHEC",
+    empty: "AUCUNE DONNÉE",
+    key: "CLÉ API",
   };
 
   return (
