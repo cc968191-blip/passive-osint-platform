@@ -27,7 +27,7 @@ export default function RootLayout({
         </nav>
         <main className="max-w-5xl mx-auto px-6 py-10">{children}</main>
         <footer className="text-center py-8 text-[0.7rem] text-neutral-600 border-t border-neutral-900 mt-12 tracking-wide">
-          Passive OSINT Platform v1.0.0 &mdash; Authorized passive reconnaissance only &mdash; MIT License
+          Passive OSINT Platform v2.0.0 &mdash; Next.js 15 &mdash; Authorized passive reconnaissance only
         </footer>
       </body>
     </html>

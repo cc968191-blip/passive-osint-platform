@@ -1,131 +1,82 @@
 # Passive OSINT Platform
 
-[![CI](https://github.com/cc968191-blip/passive-osint-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/cc968191-blip/passive-osint-platform/actions)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8%2B-blue)](https://www.python.org/)
+[![Next.js 15](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org/)
+[![React 19](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-Production-grade passive OSINT reconnaissance platform. Aggregates publicly available intelligence from multiple data sources for authorized security assessments — without active scanning or target interaction.
+Production-grade passive OSINT reconnaissance platform built with Next.js 15. Performs deep fingerprinting and intelligence gathering from public sources — zero API keys required.
 
 ---
 
 ## Modules
 
-| Module | Sources | API Key Required |
-|--------|---------|-----------------|
-| **Subdomains** | crt.sh, Wayback Machine, VirusTotal, SecurityTrails | Optional |
-| **Ports** | Shodan, Censys | Yes |
-| **Technologies** | HTTP headers, Wappalyzer, TLS certificates | No |
-| **Vulnerabilities** | CVE databases, ExploitDB | Optional |
-| **Credentials** | Breach aggregators, paste sites | Optional |
+| Module | Sources | API Key |
+|--------|---------|---------|
+| **Technologies** | HTTP headers, `<script src>`, `<link href>`, cookies, inline JS, meta tags | No |
+| **Security Headers** | HSTS, CSP, X-Frame-Options, Referrer-Policy + 6 more — graded A–F | No |
+| **WHOIS / RDAP** | IANA RDAP bootstrap + 22 TLD fallbacks | No |
+| **DNS** | A, AAAA, MX, NS, TXT, CNAME, SOA records | No |
+| **Subdomains** | crt.sh (Certificate Transparency) + HackerTarget | No |
+| **Wayback Machine** | Historical URLs via CDX API | No |
 
 ## Quick Start
 
 ```bash
 git clone https://github.com/cc968191-blip/passive-osint-platform.git
 cd passive-osint-platform
-python -m venv venv && source venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env       # then edit SECRET_KEY and API_TOKEN
-python app.py              # http://localhost:5000
-```
-
-Generate cryptographic keys:
-
-```bash
-python -c "import secrets; print(secrets.token_hex(32))"
+npm install
+npm run dev          # http://localhost:3000
 ```
 
 ## Architecture
 
 ```
-passive_osint/
-├── core/
-│   ├── config.py            Configuration management
-│   ├── engine.py            Reconnaissance engine
-│   └── exceptions.py        Custom exceptions
-├── modules/
-│   ├── subdomains.py        Certificate Transparency, DNS, Wayback
-│   ├── ports.py             Shodan / Censys passive lookups
-│   ├── technologies.py      HTTP fingerprinting, TLS analysis
-│   ├── vulnerabilities.py   CVE correlation
-│   └── credentials.py       Breach data aggregation
-├── reports/
-│   └── generator.py         JSON / HTML / CSV output
-├── utils.py                 Domain validation, async helpers
-└── cli.py                   Click-based CLI
+src/
+├── app/
+│   ├── api/
+│   │   ├── health/route.ts          Health check
+│   │   └── reconnaissance/route.ts  OSINT engine (all modules)
+│   ├── globals.css                  Tailwind base styles
+│   ├── layout.tsx                   Root layout
+│   └── page.tsx                     Dashboard (input → scan → results)
 ```
 
-## REST API
+## API
 
-Authenticated endpoints require the `X-API-Token` header.
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/health` | Health check |
+| `POST` | `/api/reconnaissance` | Execute OSINT modules |
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/api/health` | No | Health check |
-| `GET` | `/api/status` | No | Platform status and module availability |
-| `POST` | `/api/validate-domain` | Yes | RFC-compliant domain validation |
-| `POST` | `/api/reconnaissance` | Yes | Execute OSINT modules against a domain |
-| `GET` | `/api/config` | Yes | Current platform configuration |
-
-**Example — start reconnaissance:**
+**Example:**
 
 ```bash
-curl -X POST http://localhost:5000/api/reconnaissance \
+curl -X POST http://localhost:3000/api/reconnaissance \
   -H "Content-Type: application/json" \
-  -H "X-API-Token: <token>" \
-  -d '{"domain":"example.com","modules":["subdomains","technologies"]}'
+  -d '{"domain":"github.com","modules":["subdomains","technologies","security_headers","whois"]}'
 ```
 
-## Configuration
+## Tech Stack
 
-All settings are loaded from environment variables (`.env`). See [`.env.example`](.env.example) for the full reference.
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `SECRET_KEY` | Yes | Flask session signing key |
-| `API_TOKEN` | Yes | Bearer token for API authentication |
-| `CORS_ORIGINS` | Recommended | Comma-separated allowed origins |
-| `VIRUSTOTAL_API_KEY` | Optional | Enables VirusTotal module |
-| `SHODAN_API_KEY` | Optional | Enables Shodan module |
-| `SECURITYTRAILS_API_KEY` | Optional | Enables SecurityTrails module |
-
-## Security
-
-- Token-based API authentication on all sensitive endpoints
-- Rate limiting — 100 requests/hour global, 10/min on reconnaissance
-- HTTP security headers (CSP, HSTS, X-Frame-Options, X-Content-Type-Options)
-- CORS restricted to configured origins
-- Strict RFC 1035 domain validation
-- No raw exceptions exposed to clients
+- **Next.js 15** — App Router, Turbopack dev server
+- **React 19** — Server and client components
+- **TypeScript 5.7** — Strict mode
+- **Tailwind CSS 3.4** — Black & white monospace UI
+- **Vercel** — Production deployment
 
 ## Deployment
 
-**Development:**
+Push to `main` — Vercel auto-deploys.
 
 ```bash
-FLASK_ENV=development python app.py
-```
-
-**Production (Gunicorn):**
-
-```bash
-gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
-```
-
-**Render:**
-
-The included [`render.yaml`](render.yaml) provides a one-click deploy configuration.
-
-## Testing
-
-```bash
-pip install pytest
-python -m pytest tests/ -v
+npm run build        # Verify build locally
+git push origin main # Deploy
 ```
 
 ## Legal
 
-This tool is designed exclusively for **authorized passive reconnaissance**. It does not perform active scanning, exploitation, or direct interaction with target infrastructure. Users are solely responsible for ensuring compliance with all applicable laws and regulations.
+This tool performs **passive reconnaissance only**. No active scanning, exploitation, or direct target interaction. Users are responsible for compliance with applicable laws.
 
 ## License
 
